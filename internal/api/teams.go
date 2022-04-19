@@ -25,12 +25,12 @@ type Team struct {
 }
 
 func (t *Team) Encode() (map[string]interface{}, error) {
-	m, err := tfutils.EncodeGeneric(t)
+	m, err := tfutils.Encode(t)
 	if err != nil {
 		return nil, err
 	}
 
-	membersmap, err := tfutils.EncodeSliceGeneric(t.Members)
+	membersmap, err := tfutils.EncodeSlice(t.Members)
 	if err != nil {
 		return nil, err
 	}
@@ -50,6 +50,10 @@ type TeamMember struct {
 	RoleIDs []string `json:"role_ids" tf:"role_ids"`
 }
 
+func (tm *TeamMember) Encode() (map[string]interface{}, error) {
+	return tfutils.Encode(tm)
+}
+
 type TeamRole struct {
 	ID        string                 `json:"id" tf:"id"`
 	Name      string                 `json:"name" tf:"name"`
@@ -59,7 +63,7 @@ type TeamRole struct {
 }
 
 func (tr *TeamRole) Encode() (map[string]interface{}, error) {
-	m, err := tfutils.EncodeGeneric(tr)
+	m, err := tfutils.Encode(tr)
 	if err != nil {
 		return nil, err
 	}
