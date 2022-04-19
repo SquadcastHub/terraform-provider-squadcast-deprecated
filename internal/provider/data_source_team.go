@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
-	"github.com/mitchellh/mapstructure"
 )
 
 func dataSourceTeam() *schema.Resource {
@@ -78,7 +77,39 @@ func dataSourceTeam() *schema.Resource {
 					},
 				},
 			},
-			// Roles          []*TeamRole   `json:"roles"`
+			"roles": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Description: "Role id.",
+							Type:        schema.TypeString,
+							Computed:    true,
+						},
+						"name": {
+							Description: "Role name.",
+							Type:        schema.TypeString,
+							Computed:    true,
+						},
+						"slug": {
+							Description: "Role slug.",
+							Type:        schema.TypeString,
+							Computed:    true,
+						},
+						"default": {
+							Description: "Role is default?.",
+							Type:        schema.TypeBool,
+							Computed:    true,
+						},
+						"abilities": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem:     schema.TypeString,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -96,34 +127,11 @@ func dataSourceTeamRead(ctx context.Context, d *schema.ResourceData, meta interf
 		return diag.FromErr(err)
 	}
 
-	fmt.Printf("\n\nstate is %s \n\n\n", d.State().String())
-
 	if err = tfutils.EncodeAndSet(team, d); err != nil {
 		return diag.FromErr(err)
 	}
 
 	fmt.Printf("\n\nstate is %s \n\n\n", d.State().String())
-
-	return nil
-}
-
-func DecodeToTF(input interface{}, d *schema.ResourceData) error {
-	var result map[string]interface{}
-
-	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Result: &result,
-		// TagName: "tf",
-	})
-	if err != nil {
-		return err
-	}
-
-	err = decoder.Decode(input)
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("\n\nresult is %#v \n\n\n", result)
 
 	return nil
 }

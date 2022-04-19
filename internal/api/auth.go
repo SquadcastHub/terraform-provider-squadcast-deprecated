@@ -44,7 +44,6 @@ func (client *Client) GetAccessToken(ctx context.Context) error {
 	}
 
 	if err := json.Unmarshal(bytes, &response); err != nil {
-		fmt.Printf("\n%#v %#v %#v", bytes, err, resp)
 		return err
 	}
 
@@ -53,5 +52,6 @@ func (client *Client) GetAccessToken(ctx context.Context) error {
 	}
 
 	client.AccessToken = response.Data.AccessToken
+	fmt.Printf("\n\nDEBUG: Bearer %s\n\n", client.AccessToken)
 	return nil
 }

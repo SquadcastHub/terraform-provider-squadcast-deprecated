@@ -30,18 +30,27 @@ func (t *Team) Encode() (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	members, err := tfutils.EncodeSlice(t.Members)
-	if err != nil {
-		return nil, err
+	membersmap := make([]interface{}, len(t.Members))
+	for i, v := range t.Members {
+		m, err := tfutils.Encode(v)
+		if err != nil {
+			return nil, err
+		}
+		membersmap[i] = m
 	}
 
-	// roles, err := tfutils.EncodeSlice(t.Roles)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	m["members"] = membersmap
 
-	m["members"] = members
-	// m["roles"] = roles
+	rolesmap := make([]interface{}, len(t.Roles))
+	for i, role := range t.Roles {
+		m, err := role.Encode()
+		if err != nil {
+			return nil, err
+		}
+		rolesmap[i] = m
+	}
+
+	m["roles"] = rolesmap
 
 	return m, nil
 }
@@ -56,7 +65,25 @@ type TeamRole struct {
 	Name      string                 `json:"name" tf:"name"`
 	Slug      string                 `json:"slug" tf:"slug"`
 	Default   bool                   `json:"default" tf:"default"`
-	Abilities RBACEntityAbilitiesMap `json:"abilities" tf:"abilities"`
+	Abilities RBACEntityAbilitiesMap `json:"abilities" tf:"-"`
+}
+
+func (tr *TeamRole) Encode() (map[string]interface{}, error) {
+	m, err := tfutils.Encode(tr)
+	if err != nil {
+		return nil, err
+	}
+
+	abilities := make([]string, 0, 10)
+	for _, kv := range tr.Abilities {
+		for k := range kv {
+			abilities = append(abilities, k)
+		}
+	}
+
+	m["abilities"] = abilities
+
+	return m, nil
 }
 
 type RBACAbilityMap map[string]bool
@@ -70,7 +97,6 @@ func (client *Client) GetTeamById(ctx context.Context, id string) (*Team, error)
 		return nil, err
 	}
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", client.AccessToken))
-	fmt.Printf("\n\nBearer %s\n\n", client.AccessToken)
 	req.Header.Set("User-Agent", client.UserAgent)
 
 	resp, err := http.DefaultClient.Do(req)
@@ -90,7 +116,6 @@ func (client *Client) GetTeamById(ctx context.Context, id string) (*Team, error)
 	}
 
 	if err := json.Unmarshal(bytes, &response); err != nil {
-		fmt.Printf("\n%#v %#v %#v", bytes, err, resp)
 		return nil, err
 	}
 

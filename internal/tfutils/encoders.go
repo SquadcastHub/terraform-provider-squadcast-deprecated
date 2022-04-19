@@ -1,6 +1,8 @@
 package tfutils
 
-import "github.com/mitchellh/mapstructure"
+import (
+	"github.com/mitchellh/mapstructure"
+)
 
 const EncoderStructTag = "tf"
 
@@ -27,7 +29,15 @@ func Encode(input interface{}) (map[string]interface{}, error) {
 	return m, nil
 }
 
-func EncodeSlice(input []interface{}) (map[string]interface{}, error) {
+func EncodeSlice(input []interface{}) ([]interface{}, error) {
+	slice := make([]interface{}, len(input))
+	for i, v := range input {
+		m, err := Encode(v)
+		if err != nil {
+			return nil, err
+		}
+		slice[i] = m
+	}
 
-	return nil, nil
+	return slice, nil
 }
