@@ -25,31 +25,21 @@ type Team struct {
 }
 
 func (t *Team) Encode() (map[string]interface{}, error) {
-	m, err := tfutils.Encode(t)
+	m, err := tfutils.EncodeGeneric(t)
 	if err != nil {
 		return nil, err
 	}
 
-	membersmap := make([]interface{}, len(t.Members))
-	for i, v := range t.Members {
-		m, err := tfutils.Encode(v)
-		if err != nil {
-			return nil, err
-		}
-		membersmap[i] = m
+	membersmap, err := tfutils.EncodeSliceGeneric(t.Members)
+	if err != nil {
+		return nil, err
 	}
-
 	m["members"] = membersmap
 
-	rolesmap := make([]interface{}, len(t.Roles))
-	for i, role := range t.Roles {
-		m, err := role.Encode()
-		if err != nil {
-			return nil, err
-		}
-		rolesmap[i] = m
+	rolesmap, err := tfutils.EncodeSlice(t.Roles)
+	if err != nil {
+		return nil, err
 	}
-
 	m["roles"] = rolesmap
 
 	return m, nil
@@ -69,7 +59,7 @@ type TeamRole struct {
 }
 
 func (tr *TeamRole) Encode() (map[string]interface{}, error) {
-	m, err := tfutils.Encode(tr)
+	m, err := tfutils.EncodeGeneric(tr)
 	if err != nil {
 		return nil, err
 	}
