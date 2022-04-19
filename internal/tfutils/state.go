@@ -7,7 +7,12 @@ import (
 )
 
 func SetState(d *schema.ResourceData, m map[string]interface{}) error {
-	d.SetId(m["id"].(string))
+	id, ok := m["id"].(string)
+	if !ok {
+		return fmt.Errorf("invalid id")
+	}
+
+	d.SetId(id)
 
 	for k, v := range m {
 		if k == "id" {

@@ -26,17 +26,17 @@ func (t *Team) Encode() (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	membersmap, err := tfutils.EncodeSlice(t.Members)
+	members, err := tfutils.EncodeSlice(t.Members)
 	if err != nil {
 		return nil, err
 	}
-	m["members"] = membersmap
+	m["members"] = members
 
-	rolesmap, err := tfutils.EncodeSlice(t.Roles)
+	roles, err := tfutils.EncodeSlice(t.Roles)
 	if err != nil {
 		return nil, err
 	}
-	m["roles"] = rolesmap
+	m["roles"] = roles
 
 	return m, nil
 }
@@ -79,8 +79,38 @@ func (tr *TeamRole) Encode() (map[string]interface{}, error) {
 type RBACAbilityMap map[string]bool
 type RBACEntityAbilitiesMap map[string]RBACAbilityMap
 
+type Teams struct {
+	Teams []*Team `tf:"teams"`
+}
+
+func (ts *Teams) Encode() (map[string]interface{}, error) {
+	m := map[string]interface{}{}
+
+	teams, err := tfutils.EncodeSlice(ts.Teams)
+	if err != nil {
+		return nil, err
+	}
+	m["teams"] = teams
+	m["id"] = "teams"
+
+	return m, nil
+}
+
 func (client *Client) GetTeamById(ctx context.Context, id string) (*Team, error) {
 	path := fmt.Sprintf("/teams/%s", id)
 
 	return Get[Team](client, ctx, path)
+}
+
+func (client *Client) GetTeams(ctx context.Context) (*Teams, error) {
+	path := fmt.Sprintf("/teams")
+
+	teamSlice, err := Get[[]*Team](client, ctx, path)
+	if err != nil {
+		return nil, err
+	}
+
+	teams := &Teams{Teams: *teamSlice}
+
+	return teams, nil
 }

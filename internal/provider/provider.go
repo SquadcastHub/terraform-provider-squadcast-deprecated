@@ -30,7 +30,8 @@ func New(version string) func() *schema.Provider {
 	return func() *schema.Provider {
 		p := &schema.Provider{
 			DataSourcesMap: map[string]*schema.Resource{
-				"squadcast_team": dataSourceTeam(),
+				"squadcast_team":  dataSourceTeam(),
+				"squadcast_teams": dataSourceTeams(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
 				"squadcast_resource": resourceTwo(),

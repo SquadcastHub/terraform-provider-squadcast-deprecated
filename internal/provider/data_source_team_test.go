@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceOne(t *testing.T) {
+func TestAccDataSourceTeam(t *testing.T) {
 	rName := acctest.RandomWithPrefix("team")
 
 	resourceName := "data.squadcast_team.test"
@@ -19,9 +19,11 @@ func TestAccDataSourceOne(t *testing.T) {
 			{
 				Config: testAccTeamDataSourceConfig(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "name", "Default Team"),
 					resource.TestCheckResourceAttr(resourceName, "description", "Default team"),
-					resource.TestCheckResourceAttr(resourceName, "slug", "default-team1"),
+					resource.TestCheckResourceAttr(resourceName, "slug", "default-team"),
+					resource.TestCheckResourceAttr(resourceName, "default", "true"),
 					resource.TestCheckResourceAttrSet(resourceName, "created_at"),
 					resource.TestCheckResourceAttrSet(resourceName, "updated_at"),
 					resource.TestCheckResourceAttrSet(resourceName, "created_by"),
