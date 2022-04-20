@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 )
@@ -52,6 +51,5 @@ func (client *Client) GetAccessToken(ctx context.Context) error {
 	}
 
 	client.AccessToken = response.Data.AccessToken
-	fmt.Printf("\n\nDEBUG: Bearer %s\n\n", client.AccessToken)
 	return nil
 }

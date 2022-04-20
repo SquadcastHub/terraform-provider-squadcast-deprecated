@@ -1,7 +1,9 @@
 package api
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
@@ -113,4 +115,26 @@ func (client *Client) GetTeams(ctx context.Context) (*Teams, error) {
 	teams := &Teams{Teams: *teamSlice}
 
 	return teams, nil
+}
+
+type TeamCreateReq struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	// MembersIDs  string `json:"members_ids"`
+}
+
+func (client *Client) CreateTeam(ctx context.Context, req TeamCreateReq) (*Team, error) {
+	path := fmt.Sprintf("/teams")
+
+	body, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	team, err := Post[Team](client, ctx, path, bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+
+	return team, nil
 }
