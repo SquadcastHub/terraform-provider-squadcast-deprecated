@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 )
@@ -19,7 +20,7 @@ type AccessToken struct {
 func (client *Client) GetAccessToken(ctx context.Context) error {
 	path := "/oauth/access-token"
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, client.BaseURL+path, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, client.AuthBaseURL+path, nil)
 	if err != nil {
 		return err
 	}
@@ -51,5 +52,6 @@ func (client *Client) GetAccessToken(ctx context.Context) error {
 	}
 
 	client.AccessToken = response.Data.AccessToken
+	fmt.Printf("\nAccess token: %#v\n", client.AccessToken)
 	return nil
 }

@@ -30,11 +30,11 @@ func New(version string) func() *schema.Provider {
 	return func() *schema.Provider {
 		p := &schema.Provider{
 			DataSourcesMap: map[string]*schema.Resource{
-				"squadcast_team":  dataSourceTeam(),
-				"squadcast_teams": dataSourceTeams(),
+				// "squadcast_squad":  dataSourceSquad(),
+				// "squadcast_teams": dataSourceTeams(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
-				"squadcast_team": resourceTeam(),
+				"squadcast_squad": resourceSquad(),
 			},
 			Schema: map[string]*schema.Schema{
 				"region": {
@@ -82,9 +82,11 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 		}
 
 		if region == "dev" {
-			client.BaseURL = fmt.Sprintf("http://%s:8081/v3", client.Host)
+			client.BaseURL = fmt.Sprintf("http://%s:8081/v4", client.Host)
+			client.AuthBaseURL = fmt.Sprintf("http://%s:8081/v3", client.Host)
 		} else {
-			client.BaseURL = fmt.Sprintf("https://api.%s/v3", client.Host)
+			client.BaseURL = fmt.Sprintf("https://api.%s/v4", client.Host)
+			client.AuthBaseURL = fmt.Sprintf("https://api.%s/v3", client.Host)
 		}
 
 		err := client.GetAccessToken(ctx)

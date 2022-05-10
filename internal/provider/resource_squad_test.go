@@ -8,34 +8,30 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccResourceTeam(t *testing.T) {
-	rName := acctest.RandomWithPrefix("teams")
+func TestAccResourceSquad(t *testing.T) {
+	rName := acctest.RandomWithPrefix("squad")
 
-	resourceName := "squadcast_team.test"
-
+	resourceName := "squadcast_squad.test"
 	resource.UnitTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceTeamConfig(rName),
+				Config: testAccResourceSquadConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "name", "My Team"),
+					resource.TestCheckResourceAttr(resourceName, "name", "My Squad"),
 				),
 			},
 		},
 	})
 }
 
-func testAccResourceTeamConfig(rName string) string {
+func testAccResourceSquadConfig(rName string) string {
 	return fmt.Sprintf(`
-resource "squadcast_team" "test" {
-	name = "My Team"
-	description = "A great set of people."
-
-	roles {
-		name = "Foo"
-	}
+resource "squadcast_squad" "test" {
+	name = "My Squad"
+	team_id = "098765432109876543210987"
+	member_ids = toset(["123456789012345678901234"])
 }
 	`)
 }
