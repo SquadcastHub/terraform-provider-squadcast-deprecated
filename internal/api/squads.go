@@ -8,30 +8,17 @@ import (
 	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
 )
 
-type TeamRef struct {
+type OwnerRef struct {
 	ID   string `json:"id" tf:"id"`
-	Name string `json:"name" tf:"name"`
-}
-
-func (tr *TeamRef) Encode() (map[string]interface{}, error) {
-	return tfutils.Encode(tr)
-}
-
-type UserRef struct {
-	ID   string `json:"id" tf:"id"`
-	Name string `json:"name" tf:"name"`
-}
-
-func (ur *UserRef) Encode() (map[string]interface{}, error) {
-	return tfutils.Encode(ur)
+	Type string `json:"type" tf:"type"`
 }
 
 type Squad struct {
-	ID      string     `json:"id" tf:"id"`
-	Name    string     `json:"name" tf:"name"`
-	Slug    string     `json:"slug" tf:"slug"`
-	Team    TeamRef    `json:"team" tf:"-"`
-	Members []*UserRef `json:"members" tf:"-"`
+	ID        string   `json:"id" tf:"id"`
+	Name      string   `json:"name" tf:"name"`
+	Slug      string   `json:"slug" tf:"-"`
+	Owner     OwnerRef `json:"owner" tf:"-"`
+	MemberIDs []string `json:"members" tf:"members"`
 }
 
 func (s *Squad) Encode() (map[string]interface{}, error) {
@@ -40,41 +27,40 @@ func (s *Squad) Encode() (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	m["team_id"] = s.Team.ID
-
-	team, err := tfutils.Encode(s.Team)
-	if err != nil {
-		return nil, err
-	}
-	m["team"] = team
-
-	members, err := tfutils.EncodeSlice(s.Members)
-	if err != nil {
-		return nil, err
-	}
-	m["members"] = members
+	m["team_id"] = s.Owner.ID
 
 	return m, nil
 }
 
 func (client *Client) GetSquadById(ctx context.Context, teamID string, id string) (*Squad, error) {
-	path := fmt.Sprintf("/teams/%s/squads/%s", teamID, id)
+	path := fmt.Sprintf("/squads/%s?owner_id=%s", teamID, id)
 
 	return Request[any, Squad](http.MethodGet, path, client, ctx, nil)
 }
 
 func (client *Client) ListSquads(ctx context.Context, teamID string) ([]*Squad, error) {
-	path := fmt.Sprintf("/teams/%s/squads", teamID)
+	path := fmt.Sprintf("/squads?owner_id=%s", teamID)
 
 	return RequestSlice[any, Squad](http.MethodGet, path, client, ctx, nil)
 }
 
 type CreateSquadReq struct {
 	Name      string   `json:"name"`
-	MemberIDs []string `json:"memberIds"`
+	TeamID    string   `json:"owner_id"`
+	MemberIDs []string `json:"members"`
 }
 
-func (client *Client) CreateSquad(ctx context.Context, teamID string, req *CreateSquadReq) (*Squad, error) {
-	path := fmt.Sprintf("/teams/%s/squads", teamID)
+func (client *Client) CreateSquad(ctx context.Context, req *CreateSquadReq) (*Squad, error) {
+	path := fmt.Sprintf("/squads")
 	return Request[CreateSquadReq, Squad](http.MethodPost, path, client, ctx, req)
+}
+
+func (client *Client) UpdateSquad(ctx context.Context, req *Squad) (*Squad, error) {
+	path := fmt.Sprintf("/squads/%s", req.ID)
+	return Request[Squad, Squad](http.MethodPut, path, client, ctx, req)
+}
+
+func (client *Client) DeleteSquad(ctx context.Context, id string) (*any, error) {
+	path := fmt.Sprintf("/squads/%s", id)
+	return Request[Squad, any](http.MethodDelete, path, client, ctx, nil)
 }

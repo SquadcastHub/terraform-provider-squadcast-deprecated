@@ -47,43 +47,6 @@ func resourceSquad() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			"team": {
-				Description: "Team.",
-				Type:        schema.TypeMap,
-				Computed:    true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Description: "Team id.",
-							Type:        schema.TypeString,
-							Computed:    true,
-						},
-						"name": {
-							Description: "Team name.",
-							Type:        schema.TypeString,
-							Computed:    true,
-						},
-					},
-				},
-			},
-			"members": {
-				Type:     schema.TypeSet,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Description: "User id.",
-							Type:        schema.TypeString,
-							Computed:    true,
-						},
-						"name": {
-							Description: "User name.",
-							Type:        schema.TypeString,
-							Computed:    true,
-						},
-					},
-				},
-			},
 		},
 	}
 }
@@ -91,9 +54,10 @@ func resourceSquad() *schema.Resource {
 func resourceSquadCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)
 
-	squad, err := client.CreateSquad(ctx, d.Get("team_id").(string), &api.CreateSquadReq{
+	squad, err := client.CreateSquad(ctx, &api.CreateSquadReq{
 		Name:      d.Get("name").(string),
 		MemberIDs: tfutils.SetToSlice[string](d.Get("member_ids")),
+		TeamID:    d.Get("team_id").(string),
 	})
 	if err != nil {
 		fmt.Printf("\nerror here %#v\n", err)

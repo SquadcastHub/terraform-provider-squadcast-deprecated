@@ -82,10 +82,10 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 		}
 
 		if region == "dev" {
-			client.BaseURL = fmt.Sprintf("http://%s:8081/v4", client.Host)
+			client.BaseURL = fmt.Sprintf("http://%s:8081/v3", client.Host)
 			client.AuthBaseURL = fmt.Sprintf("http://%s:8081/v3", client.Host)
 		} else {
-			client.BaseURL = fmt.Sprintf("https://api.%s/v4", client.Host)
+			client.BaseURL = fmt.Sprintf("https://api.%s/v3", client.Host)
 			client.AuthBaseURL = fmt.Sprintf("https://api.%s/v3", client.Host)
 		}
 

@@ -30,8 +30,8 @@ func testAccResourceSquadConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "squadcast_squad" "test" {
 	name = "My Squad"
-	team_id = "098765432109876543210987"
-	member_ids = toset(["123456789012345678901234"])
+	team_id = "613611c1eb22db455cfa789f"
+	member_ids = toset(["5f8891527f735f0a6646f3b6"])
 }
 	`)
 }
