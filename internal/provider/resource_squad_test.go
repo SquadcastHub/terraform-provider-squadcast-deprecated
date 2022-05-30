@@ -34,8 +34,8 @@ func TestAccResourceSquad(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckTypeSetElemAttr(resourceName, "member_ids.*", "2"),
-					resource.TestCheckResourceAttr(resourceName, "member_ids.0", "5eb26b36ec9f070550204c85"),
-					resource.TestCheckResourceAttr(resourceName, "member_ids.1", "5f8891527f735f0a6646f3b6"),
+					resource.TestCheckResourceAttr(resourceName, "member_ids.0", "5f8891527f735f0a6646f3b6"),
+					resource.TestCheckResourceAttr(resourceName, "member_ids.1", "5eb26b36ec9f070550204c85"),
 					resource.TestCheckResourceAttr(resourceName, "name", "My Squad"),
 				),
 			},
@@ -64,7 +64,7 @@ func testAccResourceSquadConfig(rName string) string {
 resource "squadcast_squad" "test" {
 	name = "My Squad"
 	team_id = "613611c1eb22db455cfa789f"
-	member_ids = toset(["5f8891527f735f0a6646f3b6"])
+	member_ids = ["5f8891527f735f0a6646f3b6"]
 }
 	`)
 }
@@ -74,7 +74,7 @@ func testAccResourceSquadConfig_updateMembers(rName string) string {
 resource "squadcast_squad" "test" {
 	name = "My Squad"
 	team_id = "613611c1eb22db455cfa789f"
-	member_ids = toset(["5f8891527f735f0a6646f3b6", "5eb26b36ec9f070550204c85"])
+	member_ids = ["5f8891527f735f0a6646f3b6", "5eb26b36ec9f070550204c85"]
 }
 	`)
 }

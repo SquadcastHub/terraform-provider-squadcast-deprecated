@@ -39,7 +39,7 @@ func resourceSquad() *schema.Resource {
 				ValidateFunc: tfutils.ValidateObjectID,
 			},
 			"member_ids": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				MinItems: 1,
 				Elem: &schema.Schema{
@@ -55,7 +55,7 @@ func resourceSquadCreate(ctx context.Context, d *schema.ResourceData, meta any) 
 
 	squad, err := client.CreateSquad(ctx, &api.CreateSquadReq{
 		Name:      d.Get("name").(string),
-		MemberIDs: tfutils.SetToSlice[string](d.Get("member_ids")),
+		MemberIDs: tfutils.ListToSlice[string](d.Get("member_ids")),
 		TeamID:    d.Get("team_id").(string),
 	})
 	if err != nil {
@@ -99,7 +99,7 @@ func resourceSquadUpdate(ctx context.Context, d *schema.ResourceData, meta any) 
 
 	_, err := client.UpdateSquad(ctx, d.Id(), &api.UpdateSquadReq{
 		Name:      d.Get("name").(string),
-		MemberIDs: tfutils.SetToSlice[string](d.Get("member_ids")),
+		MemberIDs: tfutils.ListToSlice[string](d.Get("member_ids")),
 	})
 	if err != nil {
 		return diag.FromErr(err)

@@ -19,3 +19,19 @@ func SetToSlice[T any](set interface{}) []T {
 
 	return slice
 }
+
+func ListToSlice[T any](list interface{}) []T {
+	islice := list.([]interface{})
+	slicelen := len(islice)
+	slice := make([]T, slicelen, slicelen)
+
+	if slicelen == 0 {
+		return slice
+	}
+
+	for i, v := range islice {
+		slice[i] = v.(T)
+	}
+
+	return slice
+}
