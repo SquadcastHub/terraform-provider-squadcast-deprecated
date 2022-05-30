@@ -50,14 +50,19 @@ type CreateSquadReq struct {
 	MemberIDs []string `json:"members"`
 }
 
+type UpdateSquadReq struct {
+	Name      string   `json:"name"`
+	MemberIDs []string `json:"members"`
+}
+
 func (client *Client) CreateSquad(ctx context.Context, req *CreateSquadReq) (*Squad, error) {
 	path := fmt.Sprintf("/squads")
 	return Request[CreateSquadReq, Squad](http.MethodPost, path, client, ctx, req)
 }
 
-func (client *Client) UpdateSquad(ctx context.Context, req *Squad) (*Squad, error) {
-	path := fmt.Sprintf("/squads/%s", req.ID)
-	return Request[Squad, Squad](http.MethodPut, path, client, ctx, req)
+func (client *Client) UpdateSquad(ctx context.Context, id string, req *UpdateSquadReq) (*Squad, error) {
+	path := fmt.Sprintf("/squads/%s", id)
+	return Request[UpdateSquadReq, Squad](http.MethodPut, path, client, ctx, req)
 }
 
 func (client *Client) DeleteSquad(ctx context.Context, id string) (*any, error) {

@@ -2,7 +2,7 @@ package provider
 
 import (
 	"context"
-	"log"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -95,19 +95,23 @@ func resourceSquadRead(ctx context.Context, d *schema.ResourceData, meta any) di
 }
 
 func resourceSquadUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// use the meta value to retrieve your client from the provider configure method
-	// client := meta.(*apiClient)
+	client := meta.(*api.Client)
 
-	return diag.Errorf("not implemented")
+	_, err := client.UpdateSquad(ctx, d.Id(), &api.UpdateSquadReq{
+		Name:      d.Get("name").(string),
+		MemberIDs: tfutils.SetToSlice[string](d.Get("member_ids")),
+	})
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return resourceSquadRead(ctx, d, meta)
 }
 
 func resourceSquadDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// use the meta value to retrieve your client from the provider configure method
-	// client := meta.(*apiClient)
-
 	client := meta.(*api.Client)
 
-	log.Printf("[DEBUG] Deleting Squad: %s", d.Id())
+	fmt.Printf("[DEBUG] Deleting Squad: %s", d.Id())
 	_, err := client.DeleteSquad(ctx, d.Id())
 	if err != nil {
 		return diag.FromErr(err)

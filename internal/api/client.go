@@ -21,12 +21,14 @@ type Client struct {
 	AuthBaseURL string
 }
 
+type AppError struct {
+	Status  int    `json:"status"`
+	Message string `json:"error_message,omitempty"`
+}
+
 // Meta holds the status of the request informations
 type Meta struct {
-	Meta struct {
-		Status  int    `json:"status"`
-		Message string `json:"error_message,omitempty"`
-	} `json:"meta,omitempty"`
+	Meta AppError `json:"meta,omitempty"`
 }
 
 func Request[TReq interface{}, TRes interface{}](method string, path string, client *Client, ctx context.Context, payload *TReq) (*TRes, error) {
