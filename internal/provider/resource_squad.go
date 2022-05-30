@@ -2,6 +2,8 @@ package provider
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -19,6 +21,9 @@ func resourceSquad() *schema.Resource {
 		ReadContext:   resourceSquadRead,
 		UpdateContext: resourceSquadUpdate,
 		DeleteContext: resourceSquadDelete,
+		Importer: &schema.ResourceImporter{
+			StateContext: resourceSquadImport,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"id": {
@@ -48,6 +53,28 @@ func resourceSquad() *schema.Resource {
 			},
 		},
 	}
+}
+
+func parse2PartImportID(id string) (string, string, error) {
+	parts := strings.SplitN(id, ":", 2)
+
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		return "", "", fmt.Errorf("unexpected format of import resource id (%s), expected teamID:ID", id)
+	}
+
+	return parts[0], parts[1], nil
+}
+
+func resourceSquadImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+	teamID, id, err := parse2PartImportID(d.Id())
+	if err != nil {
+		return nil, err
+	}
+
+	d.Set("team_id", teamID)
+	d.SetId(id)
+
+	return []*schema.ResourceData{d}, nil
 }
 
 func resourceSquadCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -95,6 +122,8 @@ func resourceSquadRead(ctx context.Context, d *schema.ResourceData, meta any) di
 
 	return nil
 }
+
+// terraform import my_module.squad team123:sq1234
 
 func resourceSquadUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)

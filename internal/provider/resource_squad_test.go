@@ -26,6 +26,7 @@ func TestAccResourceSquad(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckTypeSetElemAttr(resourceName, "member_ids.*", "1"),
 					resource.TestCheckResourceAttr(resourceName, "member_ids.0", "5f8891527f735f0a6646f3b6"),
+					resource.TestCheckResourceAttr(resourceName, "team_id", "613611c1eb22db455cfa789f"),
 					resource.TestCheckResourceAttr(resourceName, "name", squadName),
 				),
 			},
@@ -36,8 +37,15 @@ func TestAccResourceSquad(t *testing.T) {
 					resource.TestCheckTypeSetElemAttr(resourceName, "member_ids.*", "2"),
 					resource.TestCheckResourceAttr(resourceName, "member_ids.0", "5f8891527f735f0a6646f3b6"),
 					resource.TestCheckResourceAttr(resourceName, "member_ids.1", "5eb26b36ec9f070550204c85"),
+					resource.TestCheckResourceAttr(resourceName, "team_id", "613611c1eb22db455cfa789f"),
 					resource.TestCheckResourceAttr(resourceName, "name", squadName),
 				),
+			},
+			{
+				ResourceName:        resourceName,
+				ImportState:         true,
+				ImportStateVerify:   true,
+				ImportStateIdPrefix: "613611c1eb22db455cfa789f:",
 			},
 		},
 	})
@@ -51,9 +59,15 @@ func testAccCheckSquadDestroy(s *terraform.State) error {
 			continue
 		}
 
-		if _, err := client.GetSquadById(context.Background(), rs.Primary.Attributes["team_id"], rs.Primary.ID); err == nil {
+		_, err := client.GetSquadById(context.Background(), rs.Primary.Attributes["team_id"], rs.Primary.ID)
+		if err == nil {
 			return fmt.Errorf("expected squad to be destroyed, %s found", rs.Primary.ID)
 		}
+
+		// FIXME: check for 404 errors, any other error is not acceptable.
+		// if !err.IsNotFoundError() {
+		// 	return err
+		// }
 	}
 
 	return nil

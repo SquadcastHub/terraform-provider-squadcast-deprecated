@@ -87,7 +87,7 @@ func Request[TReq interface{}, TRes interface{}](method string, path string, cli
 		if response.Meta != nil {
 			return nil, fmt.Errorf("%s %s returned %d: %s", method, path, response.Meta.Meta.Status, response.Meta.Meta.Message)
 		} else {
-			return nil, fmt.Errorf("%s %s returned an unexpected error: %#v", method, path, response)
+			return nil, fmt.Errorf("%s %s returned %d with an unexpected error: %#v", method, path, resp.StatusCode, response)
 		}
 	}
 
