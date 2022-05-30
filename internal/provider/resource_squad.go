@@ -111,7 +111,7 @@ func resourceSquadRead(ctx context.Context, d *schema.ResourceData, meta any) di
 		"id":   d.Id(),
 		"name": d.Get("name").(string),
 	})
-	squad, err := client.GetSquadById(ctx, id, teamID.(string))
+	squad, err := client.GetSquadById(ctx, teamID.(string), id)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -122,8 +122,6 @@ func resourceSquadRead(ctx context.Context, d *schema.ResourceData, meta any) di
 
 	return nil
 }
-
-// terraform import my_module.squad team123:sq1234
 
 func resourceSquadUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)

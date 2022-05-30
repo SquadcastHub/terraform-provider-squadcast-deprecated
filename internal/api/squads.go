@@ -33,7 +33,13 @@ func (s *Squad) Encode() (map[string]interface{}, error) {
 }
 
 func (client *Client) GetSquadById(ctx context.Context, teamID string, id string) (*Squad, error) {
-	path := fmt.Sprintf("/squads/%s?owner_id=%s", teamID, id)
+	path := fmt.Sprintf("/squads/%s?owner_id=%s", id, teamID)
+
+	return Request[any, Squad](http.MethodGet, path, client, ctx, nil)
+}
+
+func (client *Client) GetSquadByName(ctx context.Context, teamID string, name string) (*Squad, error) {
+	path := fmt.Sprintf("/squads/by-name?name=%s&owner_id=%s", name, teamID)
 
 	return Request[any, Squad](http.MethodGet, path, client, ctx, nil)
 }
