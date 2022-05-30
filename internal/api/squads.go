@@ -18,7 +18,7 @@ type Squad struct {
 	Name      string   `json:"name" tf:"name"`
 	Slug      string   `json:"slug" tf:"-"`
 	Owner     OwnerRef `json:"owner" tf:"-"`
-	MemberIDs []string `json:"members" tf:"members"`
+	MemberIDs []string `json:"members" tf:"member_ids"`
 }
 
 func (s *Squad) Encode() (map[string]interface{}, error) {
@@ -62,5 +62,5 @@ func (client *Client) UpdateSquad(ctx context.Context, req *Squad) (*Squad, erro
 
 func (client *Client) DeleteSquad(ctx context.Context, id string) (*any, error) {
 	path := fmt.Sprintf("/squads/%s", id)
-	return Request[Squad, any](http.MethodDelete, path, client, ctx, nil)
+	return Request[any, any](http.MethodDelete, path, client, ctx, nil)
 }

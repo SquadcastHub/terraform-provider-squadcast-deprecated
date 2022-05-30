@@ -30,17 +30,23 @@ type Meta struct {
 }
 
 func Request[TReq interface{}, TRes interface{}](method string, path string, client *Client, ctx context.Context, payload *TReq) (*TRes, error) {
-	var buf *bytes.Buffer
+	var req *http.Request
+	var err error
 
-	if payload != nil {
-		body, err := json.Marshal(payload)
-		if err != nil {
-			return nil, err
+	if method == "GET" {
+		req, err = http.NewRequestWithContext(ctx, method, client.BaseURL+path, nil)
+	} else {
+		buf := &bytes.Buffer{}
+		if payload != nil {
+			body, err := json.Marshal(payload)
+			if err != nil {
+				return nil, err
+			}
+			buf = bytes.NewBuffer(body)
 		}
-		buf = bytes.NewBuffer(body)
+		req, err = http.NewRequestWithContext(ctx, method, client.BaseURL+path, buf)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, method, client.BaseURL+path, buf)
 	if err != nil {
 		return nil, err
 	}
@@ -61,6 +67,14 @@ func Request[TReq interface{}, TRes interface{}](method string, path string, cli
 	bytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
+	}
+
+	if len(bytes) == 0 {
+		if resp.StatusCode > 299 {
+			return nil, fmt.Errorf("%s %s returned an unexpected error with no body", method, path)
+		} else {
+			return nil, nil
+		}
 	}
 
 	if err := json.Unmarshal(bytes, &response); err != nil {

@@ -19,6 +19,9 @@ func TestAccResourceSquad(t *testing.T) {
 			{
 				Config: testAccResourceSquadConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "member_ids.*", "1"),
+					resource.TestCheckResourceAttr(resourceName, "member_ids.0", "5f8891527f735f0a6646f3b6"),
 					resource.TestCheckResourceAttr(resourceName, "name", "My Squad"),
 				),
 			},

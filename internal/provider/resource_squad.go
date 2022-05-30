@@ -2,9 +2,8 @@ package provider
 
 import (
 	"context"
-	"fmt"
+	"log"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -60,42 +59,30 @@ func resourceSquadCreate(ctx context.Context, d *schema.ResourceData, meta any) 
 		TeamID:    d.Get("team_id").(string),
 	})
 	if err != nil {
-		fmt.Printf("\nerror here %#v\n", err)
 		return diag.FromErr(err)
 	}
 
 	d.SetId(squad.ID)
 
-	spew.Dump(d.GetRawState())
-
-	if err = tfutils.EncodeAndSet(squad, d); err != nil {
-		return diag.FromErr(err)
-	}
-
-	spew.Dump(d.GetRawState())
+	return resourceSquadRead(ctx, d, meta)
 
 	// write logs using the tflog package
 	// see https://pkg.go.dev/github.com/hashicorp/terraform-plugin-log/tflog
 	// for more information
 	// tflog.Trace(ctx, "created a resource")
-
-	return nil
 }
 
 func resourceSquadRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)
 
-	id, ok := d.GetOk("id")
-	if !ok {
-		return diag.Errorf("invalid squad id provided")
-	}
+	id := d.Id()
 
 	teamID, ok := d.GetOk("team_id")
 	if !ok {
 		return diag.Errorf("invalid team id provided")
 	}
 
-	squad, err := client.GetSquadById(ctx, id.(string), teamID.(string))
+	squad, err := client.GetSquadById(ctx, id, teamID.(string))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -103,8 +90,6 @@ func resourceSquadRead(ctx context.Context, d *schema.ResourceData, meta any) di
 	if err = tfutils.EncodeAndSet(squad, d); err != nil {
 		return diag.FromErr(err)
 	}
-
-	spew.Dump(d.GetRawState())
 
 	return nil
 }
@@ -120,5 +105,13 @@ func resourceSquadDelete(ctx context.Context, d *schema.ResourceData, meta any) 
 	// use the meta value to retrieve your client from the provider configure method
 	// client := meta.(*apiClient)
 
-	return diag.Errorf("not implemented")
+	client := meta.(*api.Client)
+
+	log.Printf("[DEBUG] Deleting Squad: %s", d.Id())
+	_, err := client.DeleteSquad(ctx, d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
 }
