@@ -34,7 +34,8 @@ func New(version string) func() *schema.Provider {
 				// "squadcast_teams": dataSourceTeams(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
-				"squadcast_squad": resourceSquad(),
+				"squadcast_squad":             resourceSquad(),
+				"squadcast_suppression_rules": resourceSuppressionRules(),
 			},
 			Schema: map[string]*schema.Schema{
 				"region": {
