@@ -38,6 +38,7 @@ func New(version string) func() *schema.Provider {
 				"squadcast_suppression_rules":   resourceSuppressionRules(),
 				"squadcast_deduplication_rules": resourceDeduplicationRules(),
 				"squadcast_routing_rules":       resourceRoutingRules(),
+				"squadcast_tagging_rules":       resourceTaggingRules(),
 			},
 			Schema: map[string]*schema.Schema{
 				"region": {
