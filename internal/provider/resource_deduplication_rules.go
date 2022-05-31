@@ -8,21 +8,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
-	"github.com/mitchellh/mapstructure"
 )
 
-const suppressionRulesID = "suppression_rules"
+const deduplicationRulesID = "deduplication_rules"
 
-func resourceSuppressionRules() *schema.Resource {
+func resourceDeduplicationRules() *schema.Resource {
 	return &schema.Resource{
-		Description: "SuppressionRules resource.",
+		Description: "DeduplicationRules resource.",
 
-		CreateContext: resourceSuppressionRulesCreate,
-		ReadContext:   resourceSuppressionRulesRead,
-		UpdateContext: resourceSuppressionRulesUpdate,
-		DeleteContext: resourceSuppressionRulesDelete,
+		CreateContext: resourceDeduplicationRulesCreate,
+		ReadContext:   resourceDeduplicationRulesRead,
+		UpdateContext: resourceDeduplicationRulesUpdate,
+		DeleteContext: resourceDeduplicationRulesDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceSuppressionRulesImport,
+			StateContext: resourceDeduplicationRulesImport,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -63,6 +62,24 @@ func resourceSuppressionRules() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 						},
+						"dependency_deduplication": {
+							Description: "something dependency.",
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Default:     false,
+						},
+						"time_window": {
+							Description: "time window.",
+							Type:        schema.TypeInt,
+							Optional:    true,
+							Default:     1,
+						},
+						"time_unit": {
+							Description: "time unit.",
+							Type:        schema.TypeString,
+							Optional:    true,
+							Default:     "hour",
+						},
 						"basic_expression": {
 							Description: "basic expression.",
 							Type:        schema.TypeList,
@@ -95,7 +112,7 @@ func resourceSuppressionRules() *schema.Resource {
 	}
 }
 
-func resourceSuppressionRulesImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+func resourceDeduplicationRulesImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	teamID, serviceID, err := parse2PartImportID(d.Id())
 	if err != nil {
 		return nil, err
@@ -103,54 +120,36 @@ func resourceSuppressionRulesImport(ctx context.Context, d *schema.ResourceData,
 
 	d.Set("team_id", teamID)
 	d.Set("service_id", serviceID)
-	d.SetId(suppressionRulesID)
+	d.SetId(deduplicationRulesID)
 
 	return []*schema.ResourceData{d}, nil
 }
 
-func Decode(input any, output any) error {
-	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Result:     output,
-		TagName:    tfutils.EncoderStructTag,
-		ZeroFields: true,
-	})
-	if err != nil {
-		return err
-	}
-
-	err = decoder.Decode(input)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func resourceSuppressionRulesCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDeduplicationRulesCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)
 
-	var rules []api.SuppressionRule
+	var rules []api.DeduplicationRule
 	err := Decode(d.Get("rules"), &rules)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	tflog.Info(ctx, "Creating suppression_rules", map[string]interface{}{
+	tflog.Info(ctx, "Creating deduplication_rules", map[string]interface{}{
 		"team_id":    d.Get("team_id").(string),
 		"service_id": d.Get("service_id").(string),
 	})
 
-	_, err = client.UpdateSuppressionRules(ctx, d.Get("service_id").(string), d.Get("team_id").(string), &api.UpdateSuppressionRulesReq{Rules: rules})
+	_, err = client.UpdateDeduplicationRules(ctx, d.Get("service_id").(string), d.Get("team_id").(string), &api.UpdateDeduplicationRulesReq{Rules: rules})
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.SetId(suppressionRulesID)
+	d.SetId(deduplicationRulesID)
 
-	return resourceSuppressionRulesRead(ctx, d, meta)
+	return resourceDeduplicationRulesRead(ctx, d, meta)
 }
 
-func resourceSuppressionRulesRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDeduplicationRulesRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)
 
 	teamID, ok := d.GetOk("team_id")
@@ -163,44 +162,44 @@ func resourceSuppressionRulesRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.Errorf("invalid service id provided")
 	}
 
-	tflog.Info(ctx, "Reading suppression_rules", map[string]interface{}{
+	tflog.Info(ctx, "Reading deduplication_rules", map[string]interface{}{
 		"id":         d.Id(),
 		"team_id":    d.Get("team_id").(string),
 		"service_id": d.Get("service_id").(string),
 	})
-	suppressionRules, err := client.GetSuppressionRules(ctx, serviceID.(string), teamID.(string))
+	deduplicationRules, err := client.GetDeduplicationRules(ctx, serviceID.(string), teamID.(string))
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err = tfutils.EncodeAndSet(suppressionRules, d); err != nil {
+	if err = tfutils.EncodeAndSet(deduplicationRules, d); err != nil {
 		return diag.FromErr(err)
 	}
 
 	return nil
 }
 
-func resourceSuppressionRulesUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDeduplicationRulesUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)
 
-	var rules []api.SuppressionRule
+	var rules []api.DeduplicationRule
 	err := Decode(d.Get("rules"), &rules)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	_, err = client.UpdateSuppressionRules(ctx, d.Get("service_id").(string), d.Get("team_id").(string), &api.UpdateSuppressionRulesReq{Rules: rules})
+	_, err = client.UpdateDeduplicationRules(ctx, d.Get("service_id").(string), d.Get("team_id").(string), &api.UpdateDeduplicationRulesReq{Rules: rules})
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	return resourceSuppressionRulesRead(ctx, d, meta)
+	return resourceDeduplicationRulesRead(ctx, d, meta)
 }
 
-func resourceSuppressionRulesDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDeduplicationRulesDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)
 
-	_, err := client.UpdateSuppressionRules(ctx, d.Get("service_id").(string), d.Get("team_id").(string), &api.UpdateSuppressionRulesReq{Rules: []api.SuppressionRule{}})
+	_, err := client.UpdateDeduplicationRules(ctx, d.Get("service_id").(string), d.Get("team_id").(string), &api.UpdateDeduplicationRulesReq{Rules: []api.DeduplicationRule{}})
 	if err != nil {
 		return diag.FromErr(err)
 	}

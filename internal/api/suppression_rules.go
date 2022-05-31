@@ -8,24 +8,24 @@ import (
 	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
 )
 
-type Condition struct {
+type SuppressionRuleCondition struct {
 	LHS string `json:"lhs" tf:"lhs"`
 	Op  string `json:"op" tf:"op"`
 	RHS string `json:"rhs" tf:"rhs"`
 }
 
-func (c *Condition) Encode() (map[string]interface{}, error) {
+func (c *SuppressionRuleCondition) Encode() (map[string]interface{}, error) {
 	return tfutils.Encode(c)
 }
 
-type Rule struct {
-	IsBasic         bool         `json:"is_basic" tf:"is_basic"`
-	Description     string       `json:"description" tf:"description"`
-	Expression      string       `json:"expression" tf:"expression"`
-	BasicExpression []*Condition `json:"basic_expression" tf:"basic_expression"`
+type SuppressionRule struct {
+	IsBasic         bool                        `json:"is_basic" tf:"is_basic"`
+	Description     string                      `json:"description" tf:"description"`
+	Expression      string                      `json:"expression" tf:"expression"`
+	BasicExpression []*SuppressionRuleCondition `json:"basic_expression" tf:"basic_expression"`
 }
 
-func (r *Rule) Encode() (map[string]interface{}, error) {
+func (r *SuppressionRule) Encode() (map[string]interface{}, error) {
 	m, err := tfutils.Encode(r)
 	if err != nil {
 		return nil, err
@@ -41,9 +41,9 @@ func (r *Rule) Encode() (map[string]interface{}, error) {
 }
 
 type SuppressionRules struct {
-	ID        string  `json:"id" tf:"id"`
-	ServiceID string  `json:"service_id" tf:"service_id"`
-	Rules     []*Rule `json:"rules" tf:"-"`
+	ID        string             `json:"id" tf:"id"`
+	ServiceID string             `json:"service_id" tf:"service_id"`
+	Rules     []*SuppressionRule `json:"rules" tf:"-"`
 }
 
 func (s *SuppressionRules) Encode() (map[string]interface{}, error) {
@@ -68,7 +68,7 @@ func (client *Client) GetSuppressionRules(ctx context.Context, serviceID, teamID
 }
 
 type UpdateSuppressionRulesReq struct {
-	Rules []Rule `json:"rules"`
+	Rules []SuppressionRule `json:"rules"`
 }
 
 func (client *Client) UpdateSuppressionRules(ctx context.Context, serviceID, teamID string, req *UpdateSuppressionRulesReq) (*SuppressionRules, error) {
