@@ -31,6 +31,7 @@ func New(version string) func() *schema.Provider {
 		p := &schema.Provider{
 			DataSourcesMap: map[string]*schema.Resource{
 				"squadcast_squad": dataSourceSquad(),
+				"squadcast_user":  dataSourceUser(),
 				// "squadcast_teams": dataSourceTeams(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
@@ -44,14 +45,14 @@ func New(version string) func() *schema.Provider {
 				"region": {
 					Type:         schema.TypeString,
 					Optional:     true,
-					DefaultFunc:  schema.EnvDefaultFunc("SQUADCAST_REGION", "us"),
+					DefaultFunc:  schema.EnvDefaultFunc("SQUADCAST_REGION", "staging"),
 					ValidateFunc: validation.StringInSlice([]string{"us", "eu", "internal", "staging", "dev"}, false),
 				},
 				"refresh_token": {
 					Type:        schema.TypeString,
 					Sensitive:   true,
 					Required:    true,
-					DefaultFunc: schema.EnvDefaultFunc("SQUADCAST_REFRESH_TOKEN", nil),
+					DefaultFunc: schema.EnvDefaultFunc("SQUADCAST_REFRESH_TOKEN", "5327e9c3d48d50660319fb4f9c6d3937bdfed893bade13b9baaf767a983db96af514cd79b280ea23000becf9fa6e52808cf14f0554236302ccf4798c9539f209"),
 				},
 			},
 		}
