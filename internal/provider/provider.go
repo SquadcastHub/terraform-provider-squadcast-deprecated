@@ -42,6 +42,7 @@ func New(version string) func() *schema.Provider {
 				"squadcast_routing_rules":       resourceRoutingRules(),
 				"squadcast_tagging_rules":       resourceTaggingRules(),
 				"squadcast_service":             resourceService(),
+				"squadcast_service_maintenance": resourceServiceMaintenance(),
 			},
 			Schema: map[string]*schema.Schema{
 				"organization_id": {
