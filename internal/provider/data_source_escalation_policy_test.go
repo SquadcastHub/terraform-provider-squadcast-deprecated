@@ -11,7 +11,7 @@ func TestAccDataSourceEscalationPolicy(t *testing.T) {
 
 	//TODO: input escalation policy name with random name prefix
 	// acctest.RandomWithPrefix("escalation-policy-")
-	escalationPolicyName := "EP2"
+	escalationPolicyName := "multitext service"
 
 	resourceName := "data.squadcast_escalation_policy.test"
 	resource.UnitTest(t, resource.TestCase{
@@ -26,6 +26,7 @@ func TestAccDataSourceEscalationPolicy(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "team_id", "611262fcd5b4ea846b534a8a"),
+					// TODO:
 					resource.TestCheckResourceAttr(resourceName, "name", escalationPolicyName),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
 				),
