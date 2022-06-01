@@ -105,3 +105,11 @@ func RequestSlice[TReq interface{}, TRes interface{}](method string, url string,
 
 	return *data, nil
 }
+
+func Get[TRes interface{}](client *Client, ctx context.Context, path string) (*TRes, error) {
+	return Request[interface{}, TRes](http.MethodGet, path, client, ctx, nil)
+}
+
+func Post[TRes interface{}](client *Client, ctx context.Context, path string, payload interface{}) (*TRes, error) {
+	return Request[interface{}, TRes](http.MethodPost, path, client, ctx, &payload)
+}
