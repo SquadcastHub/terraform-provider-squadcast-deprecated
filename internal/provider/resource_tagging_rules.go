@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -161,8 +160,6 @@ func resourceTaggingRulesCreate(ctx context.Context, d *schema.ResourceData, met
 		rules[i].Tags = tags
 	}
 
-	spew.Dump("before create", rules)
-
 	tflog.Info(ctx, "Creating tagging_rules", map[string]interface{}{
 		"team_id":    d.Get("team_id").(string),
 		"service_id": d.Get("service_id").(string),
@@ -201,13 +198,9 @@ func resourceTaggingRulesRead(ctx context.Context, d *schema.ResourceData, meta 
 		return diag.FromErr(err)
 	}
 
-	spew.Dump("before read", d.Get("rules"))
-
 	if err = tfutils.EncodeAndSet(taggingRules, d); err != nil {
 		return diag.FromErr(err)
 	}
-
-	spew.Dump("after read", d.Get("rules"))
 
 	return nil
 }
