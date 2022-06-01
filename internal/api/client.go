@@ -13,11 +13,13 @@ type Client struct {
 	Host   string
 	Region string
 
-	RefreshToken string
-	AccessToken  string
+	RefreshToken   string
+	AccessToken    string
+	OrganizationID string
 
 	UserAgent   string
-	BaseURL     string
+	BaseURLV2   string
+	BaseURLV3   string
 	AuthBaseURL string
 }
 
@@ -31,12 +33,12 @@ type Meta struct {
 	Meta AppError `json:"meta,omitempty"`
 }
 
-func Request[TReq interface{}, TRes interface{}](method string, path string, client *Client, ctx context.Context, payload *TReq) (*TRes, error) {
+func Request[TReq interface{}, TRes interface{}](method string, url string, client *Client, ctx context.Context, payload *TReq) (*TRes, error) {
 	var req *http.Request
 	var err error
 
 	if method == "GET" {
-		req, err = http.NewRequestWithContext(ctx, method, client.BaseURL+path, nil)
+		req, err = http.NewRequestWithContext(ctx, method, url, nil)
 	} else {
 		buf := &bytes.Buffer{}
 		if payload != nil {
@@ -46,7 +48,8 @@ func Request[TReq interface{}, TRes interface{}](method string, path string, cli
 			}
 			buf = bytes.NewBuffer(body)
 		}
-		req, err = http.NewRequestWithContext(ctx, method, client.BaseURL+path, buf)
+		req, err = http.NewRequestWithContext(ctx, method, url, buf)
+		req.Header.Set("Content-Type", "application/json;charset=UTF-8")
 	}
 
 	if err != nil {
@@ -73,7 +76,7 @@ func Request[TReq interface{}, TRes interface{}](method string, path string, cli
 
 	if len(bytes) == 0 {
 		if resp.StatusCode > 299 {
-			return nil, fmt.Errorf("%s %s returned an unexpected error with no body", method, path)
+			return nil, fmt.Errorf("%s %s returned an unexpected error with no body", method, url)
 		} else {
 			return nil, nil
 		}
@@ -85,17 +88,17 @@ func Request[TReq interface{}, TRes interface{}](method string, path string, cli
 
 	if resp.StatusCode > 299 {
 		if response.Meta != nil {
-			return nil, fmt.Errorf("%s %s returned %d: %s", method, path, response.Meta.Meta.Status, response.Meta.Meta.Message)
+			return nil, fmt.Errorf("%s %s returned %d: %s", method, url, response.Meta.Meta.Status, response.Meta.Meta.Message)
 		} else {
-			return nil, fmt.Errorf("%s %s returned %d with an unexpected error: %#v", method, path, resp.StatusCode, response)
+			return nil, fmt.Errorf("%s %s returned %d with an unexpected error: %#v", method, url, resp.StatusCode, response)
 		}
 	}
 
 	return response.Data, nil
 }
 
-func RequestSlice[TReq interface{}, TRes interface{}](method string, path string, client *Client, ctx context.Context, payload *TReq) ([]*TRes, error) {
-	data, err := Request[TReq, []*TRes](method, path, client, ctx, payload)
+func RequestSlice[TReq interface{}, TRes interface{}](method string, url string, client *Client, ctx context.Context, payload *TReq) ([]*TRes, error) {
+	data, err := Request[TReq, []*TRes](method, url, client, ctx, payload)
 	if err != nil {
 		return nil, err
 	}

@@ -62,9 +62,9 @@ func (s *SuppressionRules) Encode() (map[string]interface{}, error) {
 }
 
 func (client *Client) GetSuppressionRules(ctx context.Context, serviceID, teamID string) (*SuppressionRules, error) {
-	path := fmt.Sprintf("/services/%s/suppression-rules", serviceID)
+	url := fmt.Sprintf("%s/services/%s/suppression-rules", client.BaseURLV3, serviceID)
 
-	return Request[any, SuppressionRules](http.MethodGet, path, client, ctx, nil)
+	return Request[any, SuppressionRules](http.MethodGet, url, client, ctx, nil)
 }
 
 type UpdateSuppressionRulesReq struct {
@@ -72,6 +72,6 @@ type UpdateSuppressionRulesReq struct {
 }
 
 func (client *Client) UpdateSuppressionRules(ctx context.Context, serviceID, teamID string, req *UpdateSuppressionRulesReq) (*SuppressionRules, error) {
-	path := fmt.Sprintf("/services/%s/suppression-rules", serviceID)
-	return Request[UpdateSuppressionRulesReq, SuppressionRules](http.MethodPost, path, client, ctx, req)
+	url := fmt.Sprintf("%s/services/%s/suppression-rules", client.BaseURLV3, serviceID)
+	return Request[UpdateSuppressionRulesReq, SuppressionRules](http.MethodPost, url, client, ctx, req)
 }

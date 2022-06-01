@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
 )
 
 func init() {
@@ -43,13 +44,22 @@ func New(version string) func() *schema.Provider {
 				"squadcast_service":             resourceService(),
 			},
 			Schema: map[string]*schema.Schema{
+				"organization_id": {
+					Description:  "org id",
+					Type:         schema.TypeString,
+					Required:     true,
+					DefaultFunc:  schema.EnvDefaultFunc("SQUADCAST_ORGANIZATION_ID", ""),
+					ValidateFunc: tfutils.ValidateObjectID,
+				},
 				"region": {
+					Description:  "region",
 					Type:         schema.TypeString,
 					Optional:     true,
 					DefaultFunc:  schema.EnvDefaultFunc("SQUADCAST_REGION", "us"),
 					ValidateFunc: validation.StringInSlice([]string{"us", "eu", "internal", "staging", "dev"}, false),
 				},
 				"refresh_token": {
+					Description: "refresh token",
 					Type:        schema.TypeString,
 					Sensitive:   true,
 					Required:    true,
@@ -71,8 +81,10 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 
 		region := rd.Get("region").(string)
 		refreshToken := rd.Get("refresh_token").(string)
+		organizationID := rd.Get("organization_id").(string)
 
 		client.RefreshToken = refreshToken
+		client.OrganizationID = organizationID
 
 		switch region {
 		case "us":
@@ -88,10 +100,12 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 		}
 
 		if region == "dev" {
-			client.BaseURL = fmt.Sprintf("http://%s:8081/v3", client.Host)
+			client.BaseURLV3 = fmt.Sprintf("http://%s:8081/v3", client.Host)
+			client.BaseURLV2 = fmt.Sprintf("http://%s:8080/v2", client.Host)
 			client.AuthBaseURL = fmt.Sprintf("http://%s:8081/v3", client.Host)
 		} else {
-			client.BaseURL = fmt.Sprintf("https://api.%s/v3", client.Host)
+			client.BaseURLV3 = fmt.Sprintf("https://api.%s/v3", client.Host)
+			client.BaseURLV2 = fmt.Sprintf("https://platform-backend.%s/v2", client.Host)
 			client.AuthBaseURL = fmt.Sprintf("https://api.%s/v3", client.Host)
 		}
 

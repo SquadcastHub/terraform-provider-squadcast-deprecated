@@ -83,9 +83,9 @@ func (s *TaggingRules) Encode() (map[string]interface{}, error) {
 }
 
 func (client *Client) GetTaggingRules(ctx context.Context, serviceID, teamID string) (*TaggingRules, error) {
-	path := fmt.Sprintf("/services/%s/tagging-rules", serviceID)
+	url := fmt.Sprintf("%s/services/%s/tagging-rules", client.BaseURLV3, serviceID)
 
-	return Request[any, TaggingRules](http.MethodGet, path, client, ctx, nil)
+	return Request[any, TaggingRules](http.MethodGet, url, client, ctx, nil)
 }
 
 type UpdateTaggingRulesReq struct {
@@ -93,6 +93,7 @@ type UpdateTaggingRulesReq struct {
 }
 
 func (client *Client) UpdateTaggingRules(ctx context.Context, serviceID, teamID string, req *UpdateTaggingRulesReq) (*TaggingRules, error) {
-	path := fmt.Sprintf("/services/%s/tagging-rules", serviceID)
-	return Request[UpdateTaggingRulesReq, TaggingRules](http.MethodPost, path, client, ctx, req)
+	url := fmt.Sprintf("%s/services/%s/tagging-rules", client.BaseURLV3, serviceID)
+
+	return Request[UpdateTaggingRulesReq, TaggingRules](http.MethodPost, url, client, ctx, req)
 }

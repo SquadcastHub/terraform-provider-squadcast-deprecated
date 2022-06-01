@@ -65,9 +65,9 @@ func (s *DeduplicationRules) Encode() (map[string]interface{}, error) {
 }
 
 func (client *Client) GetDeduplicationRules(ctx context.Context, serviceID, teamID string) (*DeduplicationRules, error) {
-	path := fmt.Sprintf("/services/%s/deduplication-rules", serviceID)
+	url := fmt.Sprintf("%s/services/%s/deduplication-rules", client.BaseURLV3, serviceID)
 
-	return Request[any, DeduplicationRules](http.MethodGet, path, client, ctx, nil)
+	return Request[any, DeduplicationRules](http.MethodGet, url, client, ctx, nil)
 }
 
 type UpdateDeduplicationRulesReq struct {
@@ -75,6 +75,6 @@ type UpdateDeduplicationRulesReq struct {
 }
 
 func (client *Client) UpdateDeduplicationRules(ctx context.Context, serviceID, teamID string, req *UpdateDeduplicationRulesReq) (*DeduplicationRules, error) {
-	path := fmt.Sprintf("/services/%s/deduplication-rules", serviceID)
-	return Request[UpdateDeduplicationRulesReq, DeduplicationRules](http.MethodPost, path, client, ctx, req)
+	url := fmt.Sprintf("%s/services/%s/deduplication-rules", client.BaseURLV3, serviceID)
+	return Request[UpdateDeduplicationRulesReq, DeduplicationRules](http.MethodPost, url, client, ctx, req)
 }

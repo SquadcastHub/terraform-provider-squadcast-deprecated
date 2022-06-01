@@ -31,6 +31,7 @@ func TestAccResourceService(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "email_prefix", "testfoo"),
 					resource.TestCheckResourceAttrSet(resourceName, "api_key"),
 					resource.TestCheckResourceAttr(resourceName, "email", "testfoo@squadcast.incidents.squadcast.com"),
+					resource.TestCheckResourceAttr(resourceName, "dependencies.#", "0"),
 				),
 			},
 			{
@@ -44,6 +45,22 @@ func TestAccResourceService(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "email_prefix", "foomp2"),
 					resource.TestCheckResourceAttrSet(resourceName, "api_key"),
 					resource.TestCheckResourceAttr(resourceName, "email", "foomp2@squadcast.incidents.squadcast.com"),
+					resource.TestCheckResourceAttr(resourceName, "dependencies.#", "0"),
+				),
+			},
+			{
+				Config: testAccResourceServiceConfig_dependencies(serviceName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "team_id", "613611c1eb22db455cfa789f"),
+					resource.TestCheckResourceAttr(resourceName, "name", serviceName),
+					resource.TestCheckResourceAttr(resourceName, "description", "some description here."),
+					resource.TestCheckResourceAttr(resourceName, "escalation_policy_id", "61361415c2fc70c3101ca7db"),
+					resource.TestCheckResourceAttr(resourceName, "email_prefix", "foomp2"),
+					resource.TestCheckResourceAttrSet(resourceName, "api_key"),
+					resource.TestCheckResourceAttr(resourceName, "email", "foomp2@squadcast.incidents.squadcast.com"),
+					resource.TestCheckResourceAttr(resourceName, "dependencies.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "dependencies.0", "squadcast_service.test_parent", "id"),
 				),
 			},
 			{
@@ -99,4 +116,24 @@ resource "squadcast_service" "test" {
 	email_prefix = "foomp2"
 }
 	`, serviceName)
+}
+
+func testAccResourceServiceConfig_dependencies(serviceName string) string {
+	return fmt.Sprintf(`
+resource "squadcast_service" "test_parent" {
+	name = "%s-parent"
+	team_id = "613611c1eb22db455cfa789f"
+	escalation_policy_id = "61361415c2fc70c3101ca7db"
+	email_prefix = "%s-parent"
+}
+
+resource "squadcast_service" "test" {
+	name = "%s"
+	description = "some description here."
+	team_id = "613611c1eb22db455cfa789f"
+	escalation_policy_id = "61361415c2fc70c3101ca7db"
+	email_prefix = "foomp2"
+	dependencies = [squadcast_service.test_parent.id]
+}
+	`, serviceName, serviceName, serviceName)
 }

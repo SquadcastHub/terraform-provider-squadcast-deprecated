@@ -66,9 +66,9 @@ func (s *RoutingRules) Encode() (map[string]interface{}, error) {
 }
 
 func (client *Client) GetRoutingRules(ctx context.Context, serviceID, teamID string) (*RoutingRules, error) {
-	path := fmt.Sprintf("/services/%s/routing-rules", serviceID)
+	url := fmt.Sprintf("%s/services/%s/routing-rules", client.BaseURLV3, serviceID)
 
-	return Request[any, RoutingRules](http.MethodGet, path, client, ctx, nil)
+	return Request[any, RoutingRules](http.MethodGet, url, client, ctx, nil)
 }
 
 type UpdateRoutingRulesReq struct {
@@ -76,6 +76,6 @@ type UpdateRoutingRulesReq struct {
 }
 
 func (client *Client) UpdateRoutingRules(ctx context.Context, serviceID, teamID string, req *UpdateRoutingRulesReq) (*RoutingRules, error) {
-	path := fmt.Sprintf("/services/%s/routing-rules", serviceID)
-	return Request[UpdateRoutingRulesReq, RoutingRules](http.MethodPost, path, client, ctx, req)
+	url := fmt.Sprintf("%s/services/%s/routing-rules", client.BaseURLV3, serviceID)
+	return Request[UpdateRoutingRulesReq, RoutingRules](http.MethodPost, url, client, ctx, req)
 }

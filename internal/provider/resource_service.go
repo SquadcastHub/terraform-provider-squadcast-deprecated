@@ -69,6 +69,15 @@ func resourceService() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
+			"dependencies": {
+				Description: "dependencies.",
+				Type:        schema.TypeList,
+				Optional:    true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: tfutils.ValidateObjectID,
+				},
+			},
 		},
 	}
 }
@@ -103,6 +112,13 @@ func resourceServiceCreate(ctx context.Context, d *schema.ResourceData, meta any
 	}
 
 	d.SetId(service.ID)
+
+	_, err = client.UpdateServiceDependencies(ctx, service.ID, &api.UpdateServiceDependenciesReq{
+		Data: tfutils.ListToSlice[string](d.Get("dependencies")),
+	})
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	return resourceServiceRead(ctx, d, meta)
 }
@@ -144,6 +160,13 @@ func resourceServiceUpdate(ctx context.Context, d *schema.ResourceData, meta any
 		Description:        d.Get("description").(string),
 		EscalationPolicyID: d.Get("escalation_policy_id").(string),
 		EmailPrefix:        d.Get("email_prefix").(string),
+	})
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	_, err = client.UpdateServiceDependencies(ctx, d.Id(), &api.UpdateServiceDependenciesReq{
+		Data: tfutils.ListToSlice[string](d.Get("dependencies")),
 	})
 	if err != nil {
 		return diag.FromErr(err)

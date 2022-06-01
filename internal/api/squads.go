@@ -33,21 +33,21 @@ func (s *Squad) Encode() (map[string]interface{}, error) {
 }
 
 func (client *Client) GetSquadById(ctx context.Context, teamID string, id string) (*Squad, error) {
-	path := fmt.Sprintf("/squads/%s?owner_id=%s", id, teamID)
+	url := fmt.Sprintf("%s/squads/%s?owner_id=%s", client.BaseURLV3, id, teamID)
 
-	return Request[any, Squad](http.MethodGet, path, client, ctx, nil)
+	return Request[any, Squad](http.MethodGet, url, client, ctx, nil)
 }
 
 func (client *Client) GetSquadByName(ctx context.Context, teamID string, name string) (*Squad, error) {
-	path := fmt.Sprintf("/squads/by-name?name=%s&owner_id=%s", name, teamID)
+	url := fmt.Sprintf("%s/squads/by-name?name=%s&owner_id=%s", client.BaseURLV3, name, teamID)
 
-	return Request[any, Squad](http.MethodGet, path, client, ctx, nil)
+	return Request[any, Squad](http.MethodGet, url, client, ctx, nil)
 }
 
 func (client *Client) ListSquads(ctx context.Context, teamID string) ([]*Squad, error) {
-	path := fmt.Sprintf("/squads?owner_id=%s", teamID)
+	url := fmt.Sprintf("%s/squads?owner_id=%s", client.BaseURLV3, teamID)
 
-	return RequestSlice[any, Squad](http.MethodGet, path, client, ctx, nil)
+	return RequestSlice[any, Squad](http.MethodGet, url, client, ctx, nil)
 }
 
 type CreateSquadReq struct {
@@ -62,16 +62,16 @@ type UpdateSquadReq struct {
 }
 
 func (client *Client) CreateSquad(ctx context.Context, req *CreateSquadReq) (*Squad, error) {
-	path := fmt.Sprintf("/squads")
-	return Request[CreateSquadReq, Squad](http.MethodPost, path, client, ctx, req)
+	url := fmt.Sprintf("%s/squads", client.BaseURLV3)
+	return Request[CreateSquadReq, Squad](http.MethodPost, url, client, ctx, req)
 }
 
 func (client *Client) UpdateSquad(ctx context.Context, id string, req *UpdateSquadReq) (*Squad, error) {
-	path := fmt.Sprintf("/squads/%s", id)
-	return Request[UpdateSquadReq, Squad](http.MethodPut, path, client, ctx, req)
+	url := fmt.Sprintf("%s/squads/%s", client.BaseURLV3, id)
+	return Request[UpdateSquadReq, Squad](http.MethodPut, url, client, ctx, req)
 }
 
 func (client *Client) DeleteSquad(ctx context.Context, id string) (*any, error) {
-	path := fmt.Sprintf("/squads/%s", id)
-	return Request[any, any](http.MethodDelete, path, client, ctx, nil)
+	url := fmt.Sprintf("%s/squads/%s", client.BaseURLV3, id)
+	return Request[any, any](http.MethodDelete, url, client, ctx, nil)
 }

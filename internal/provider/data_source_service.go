@@ -59,6 +59,15 @@ func dataSourceService() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
+			"dependencies": {
+				Description: "dependencies.",
+				Type:        schema.TypeList,
+				Optional:    true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: tfutils.ValidateObjectID,
+				},
+			},
 		},
 	}
 }

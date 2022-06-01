@@ -17,6 +17,7 @@ type Service struct {
 	EscalationPolicyID string   `json:"escalation_policy_id" tf:"escalation_policy_id"`
 	OnMaintenance      bool     `json:"on_maintenance" tf:"-"`
 	Owner              OwnerRef `json:"owner" tf:"-"`
+	Dependencies       []string `json:"depends" tf:"dependencies"`
 }
 
 func (s *Service) Encode() (map[string]interface{}, error) {
@@ -31,21 +32,21 @@ func (s *Service) Encode() (map[string]interface{}, error) {
 }
 
 func (client *Client) GetServiceById(ctx context.Context, teamID string, id string) (*Service, error) {
-	path := fmt.Sprintf("/services/%s?owner_id=%s", id, teamID)
+	url := fmt.Sprintf("%s/services/%s?owner_id=%s", client.BaseURLV3, id, teamID)
 
-	return Request[any, Service](http.MethodGet, path, client, ctx, nil)
+	return Request[any, Service](http.MethodGet, url, client, ctx, nil)
 }
 
 func (client *Client) GetServiceByName(ctx context.Context, teamID string, name string) (*Service, error) {
-	path := fmt.Sprintf("/services/by-name?name=%s&owner_id=%s", name, teamID)
+	url := fmt.Sprintf("%s/services/by-name?name=%s&owner_id=%s", client.BaseURLV3, name, teamID)
 
-	return Request[any, Service](http.MethodGet, path, client, ctx, nil)
+	return Request[any, Service](http.MethodGet, url, client, ctx, nil)
 }
 
 func (client *Client) ListServices(ctx context.Context, teamID string) ([]*Service, error) {
-	path := fmt.Sprintf("/services?owner_id=%s", teamID)
+	url := fmt.Sprintf("%s/services?owner_id=%s", client.BaseURLV3, teamID)
 
-	return RequestSlice[any, Service](http.MethodGet, path, client, ctx, nil)
+	return RequestSlice[any, Service](http.MethodGet, url, client, ctx, nil)
 }
 
 type CreateServiceReq struct {
@@ -63,17 +64,26 @@ type UpdateServiceReq struct {
 	EmailPrefix        string `json:"email_prefix"`
 }
 
+type UpdateServiceDependenciesReq struct {
+	Data []string `json:"data"`
+}
+
 func (client *Client) CreateService(ctx context.Context, req *CreateServiceReq) (*Service, error) {
-	path := fmt.Sprintf("/services")
-	return Request[CreateServiceReq, Service](http.MethodPost, path, client, ctx, req)
+	url := fmt.Sprintf("%s/services", client.BaseURLV3)
+	return Request[CreateServiceReq, Service](http.MethodPost, url, client, ctx, req)
 }
 
 func (client *Client) UpdateService(ctx context.Context, id string, req *UpdateServiceReq) (*Service, error) {
-	path := fmt.Sprintf("/services/%s", id)
-	return Request[UpdateServiceReq, Service](http.MethodPut, path, client, ctx, req)
+	url := fmt.Sprintf("%s/services/%s", client.BaseURLV3, id)
+	return Request[UpdateServiceReq, Service](http.MethodPut, url, client, ctx, req)
+}
+
+func (client *Client) UpdateServiceDependencies(ctx context.Context, id string, req *UpdateServiceDependenciesReq) (*any, error) {
+	url := fmt.Sprintf("%s/organizations/%s/services/%s/dependencies", client.BaseURLV2, client.OrganizationID, id)
+	return Request[UpdateServiceDependenciesReq, any](http.MethodPost, url, client, ctx, req)
 }
 
 func (client *Client) DeleteService(ctx context.Context, id string) (*any, error) {
-	path := fmt.Sprintf("/services/%s", id)
-	return Request[any, any](http.MethodDelete, path, client, ctx, nil)
+	url := fmt.Sprintf("%s/services/%s", client.BaseURLV3, id)
+	return Request[any, any](http.MethodDelete, url, client, ctx, nil)
 }
