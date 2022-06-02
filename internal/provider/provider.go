@@ -33,7 +33,7 @@ func New(version string) func() *schema.Provider {
 			DataSourcesMap: map[string]*schema.Resource{
 				"squadcast_squad":   dataSourceSquad(),
 				"squadcast_service": dataSourceService(),
-				// "squadcast_teams": dataSourceTeams(),
+				"squadcast_team":    dataSourceTeam(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
 				"squadcast_squad":               resourceSquad(),

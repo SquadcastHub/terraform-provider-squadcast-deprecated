@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
 )
@@ -38,7 +39,7 @@ func (client *Client) GetServiceById(ctx context.Context, teamID string, id stri
 }
 
 func (client *Client) GetServiceByName(ctx context.Context, teamID string, name string) (*Service, error) {
-	url := fmt.Sprintf("%s/services/by-name?name=%s&owner_id=%s", client.BaseURLV3, name, teamID)
+	url := fmt.Sprintf("%s/services/by-name?name=%s&owner_id=%s", client.BaseURLV3, url.QueryEscape(name), teamID)
 
 	return Request[any, Service](http.MethodGet, url, client, ctx, nil)
 }
