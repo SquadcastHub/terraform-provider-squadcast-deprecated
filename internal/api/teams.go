@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
 )
@@ -137,4 +138,12 @@ func (client *Client) CreateTeam(ctx context.Context, req TeamCreateReq) (*Team,
 	}
 
 	return team, nil
+}
+
+func Get[TRes interface{}](client *Client, ctx context.Context, path string) (*TRes, error) {
+	return Request[interface{}, TRes](http.MethodGet, path, client, ctx, nil)
+}
+
+func Post[TRes interface{}](client *Client, ctx context.Context, path string, payload interface{}) (*TRes, error) {
+	return Request[interface{}, TRes](http.MethodPost, path, client, ctx, &payload)
 }
