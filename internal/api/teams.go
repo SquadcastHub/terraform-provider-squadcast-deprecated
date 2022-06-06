@@ -79,44 +79,8 @@ func (tr *TeamRole) Encode() (map[string]interface{}, error) {
 type RBACAbilityMap map[string]bool
 type RBACEntityAbilitiesMap map[string]RBACAbilityMap
 
-// func (client *Client) GetTeamById(ctx context.Context, id string) (*Team, error) {
-// 	path := fmt.Sprintf("/teams/%s", id)
-
-// 	return Get[Team](client, ctx, path)
-// }
-
 func (client *Client) GetTeamByName(ctx context.Context, name string) (*Team, error) {
 	url := fmt.Sprintf("%s/teams/by-name?name=%s", client.BaseURLV3, url.QueryEscape(name))
 
 	return Request[any, Team](http.MethodGet, url, client, ctx, nil)
-}
-
-// type TeamCreateReq struct {
-// 	Name        string `json:"name"`
-// 	Description string `json:"description"`
-// 	// MembersIDs  string `json:"members_ids"`
-// }
-
-// func (client *Client) CreateTeam(ctx context.Context, req TeamCreateReq) (*Team, error) {
-// 	path := fmt.Sprintf("/teams")
-
-// 	body, err := json.Marshal(req)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	team, err := Post[Team](client, ctx, path, bytes.NewBuffer(body))
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	return team, nil
-// }
-
-func Get[TRes interface{}](client *Client, ctx context.Context, path string) (*TRes, error) {
-	return Request[interface{}, TRes](http.MethodGet, path, client, ctx, nil)
-}
-
-func Post[TRes interface{}](client *Client, ctx context.Context, path string, payload interface{}) (*TRes, error) {
-	return Request[interface{}, TRes](http.MethodPost, path, client, ctx, &payload)
 }

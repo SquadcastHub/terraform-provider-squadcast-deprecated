@@ -64,15 +64,18 @@ type UpdateSquadReq struct {
 
 func (client *Client) CreateSquad(ctx context.Context, req *CreateSquadReq) (*Squad, error) {
 	url := fmt.Sprintf("%s/squads", client.BaseURLV3)
+
 	return Request[CreateSquadReq, Squad](http.MethodPost, url, client, ctx, req)
 }
 
 func (client *Client) UpdateSquad(ctx context.Context, id string, req *UpdateSquadReq) (*Squad, error) {
 	url := fmt.Sprintf("%s/squads/%s", client.BaseURLV3, id)
+
 	return Request[UpdateSquadReq, Squad](http.MethodPut, url, client, ctx, req)
 }
 
 func (client *Client) DeleteSquad(ctx context.Context, id string) (*any, error) {
 	url := fmt.Sprintf("%s/squads/%s", client.BaseURLV3, id)
+
 	return Request[any, any](http.MethodDelete, url, client, ctx, nil)
 }
