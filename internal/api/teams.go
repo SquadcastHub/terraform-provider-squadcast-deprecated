@@ -84,3 +84,15 @@ func (client *Client) GetTeamByName(ctx context.Context, name string) (*Team, er
 
 	return Request[any, Team](http.MethodGet, url, client, ctx, nil)
 }
+
+func (client *Client) GetTeamById(ctx context.Context, id string) (*Team, error) {
+	url := fmt.Sprintf("%s/teams/%s", client.BaseURLV3, id)
+
+	return Request[any, Team](http.MethodGet, url, client, ctx, nil)
+}
+
+func (client *Client) DeleteTeam(ctx context.Context, id string) (*any, error) {
+	url := fmt.Sprintf("%s/teams/%s", client.BaseURLV3, id)
+
+	return Request[any, any](http.MethodDelete, url, client, ctx, nil)
+}

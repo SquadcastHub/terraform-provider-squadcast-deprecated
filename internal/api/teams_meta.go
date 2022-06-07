@@ -49,9 +49,29 @@ func (t *TeamMeta) Encode() (map[string]interface{}, error) {
 }
 
 func (client *Client) GetTeamMetaById(ctx context.Context, id string) (*TeamMeta, error) {
-	url := fmt.Sprintf("%s/teams/%s", client.BaseURLV3, id)
+	team, err := client.GetTeamById(ctx, id)
+	if err != nil {
+		return nil, err
+	}
 
-	return Request[any, TeamMeta](http.MethodGet, url, client, ctx, nil)
+	roles := make([]*teamMetaRole, len(team.Roles))
+
+	for i, v := range team.Roles {
+		roles[i] = &teamMetaRole{
+			ID:      v.ID,
+			Name:    v.Name,
+			Default: v.Default,
+		}
+	}
+
+	return &TeamMeta{
+		ID:          team.ID,
+		Name:        team.Name,
+		Description: team.Description,
+		Default:     team.Default,
+		Roles:       roles,
+	}, nil
+
 }
 
 type CreateTeamReq struct {
@@ -74,20 +94,4 @@ func (client *Client) UpdateTeamMeta(ctx context.Context, id string, req *Update
 	url := fmt.Sprintf("%s/teams/%s/meta", client.BaseURLV3, id)
 
 	return Request[UpdateTeamMetaReq, TeamMeta](http.MethodPatch, url, client, ctx, req)
-}
-
-// type UpdateTeamMembersReq struct {
-// 	Members []*TeamMember `json:"members"`
-// }
-
-// func (client *Client) UpdateTeamMembers(ctx context.Context, id string, req *UpdateTeamMembersReq) (*TeamMeta, error) {
-// 	url := fmt.Sprintf("%s/teams/%s/members", client.BaseURLV3, id)
-
-// 	return Request[UpdateTeamMembersReq, TeamMeta](http.MethodPatch, url, client, ctx, req)
-// }
-
-func (client *Client) DeleteTeam(ctx context.Context, id string) (*any, error) {
-	url := fmt.Sprintf("%s/teams/%s", client.BaseURLV3, id)
-
-	return Request[any, any](http.MethodDelete, url, client, ctx, nil)
 }

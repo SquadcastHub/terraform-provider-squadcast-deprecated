@@ -45,6 +45,7 @@ func New(version string) func() *schema.Provider {
 				"squadcast_service_maintenance": resourceServiceMaintenance(),
 				"squadcast_team":                resourceTeam(),
 				"squadcast_team_role":           resourceTeamRole(),
+				"squadcast_team_members":        resourceTeamMembers(),
 			},
 			Schema: map[string]*schema.Schema{
 				"organization_id": {
