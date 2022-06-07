@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
 )
 
@@ -37,8 +36,6 @@ func (t *TeamMeta) Encode() (map[string]interface{}, error) {
 	}
 
 	roles := map[string]interface{}{}
-
-	spew.Dump(t.Roles)
 
 	for _, role := range t.Roles {
 		key := defaultRoleNames[role.Name]
