@@ -35,7 +35,6 @@ type Meta struct {
 
 func Request[TReq interface{}, TRes interface{}](method string, url string, client *Client, ctx context.Context, payload *TReq) (*TRes, error) {
 	var req *http.Request
-	var resData *TRes
 	var err error
 
 	if method == "GET" {
@@ -83,20 +82,8 @@ func Request[TReq interface{}, TRes interface{}](method string, url string, clie
 		}
 	}
 
-	err = json.Unmarshal(bytes, &response)
-	if err == nil {
-		resData = response.Data
-	} else {
-		// When the response returns array of objects, take the first object
-		var responseWithArray struct {
-			Data []*TRes `json:"data"`
-			*Meta
-		}
-		err := json.Unmarshal(bytes, &responseWithArray)
-		if err != nil {
-			return nil, err
-		}
-		resData = responseWithArray.Data[0]
+	if err := json.Unmarshal(bytes, &response); err != nil {
+		return nil, err
 	}
 
 	if resp.StatusCode > 299 {
@@ -107,7 +94,7 @@ func Request[TReq interface{}, TRes interface{}](method string, url string, clie
 		}
 	}
 
-	return resData, nil
+	return response.Data, nil
 }
 
 func RequestSlice[TReq interface{}, TRes interface{}](method string, url string, client *Client, ctx context.Context, payload *TReq) ([]*TRes, error) {

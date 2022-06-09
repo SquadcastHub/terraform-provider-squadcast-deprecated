@@ -64,7 +64,11 @@ func dataSourceEscalationPolicyRead(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 
-	if err = tfutils.EncodeAndSet(escalationPolicy, d); err != nil {
+	if len(escalationPolicy) < 1 {
+		return diag.Errorf("Unable to find escalation policy with the name %s", name)
+	}
+
+	if err = tfutils.EncodeAndSet(escalationPolicy[0], d); err != nil {
 		return diag.FromErr(err)
 	}
 

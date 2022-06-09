@@ -26,7 +26,7 @@ func (s *EscalationPolicy) Encode() (map[string]interface{}, error) {
 	return m, nil
 }
 
-func (client *Client) GetEscalationPolicyByName(ctx context.Context, teamID string, name string) (*EscalationPolicy, error) {
+func (client *Client) GetEscalationPolicyByName(ctx context.Context, teamID string, name string) ([]*EscalationPolicy, error) {
 	url := fmt.Sprintf("%s/escalation-policies?name=%s&owner_id=%s", client.BaseURLV3, name, teamID)
-	return Request[any, EscalationPolicy](http.MethodGet, url, client, ctx, nil)
+	return RequestSlice[any, EscalationPolicy](http.MethodGet, url, client, ctx, nil)
 }
