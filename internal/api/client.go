@@ -23,9 +23,26 @@ type Client struct {
 	AuthBaseURL string
 }
 
+type ErrorDetails struct {
+	Code        string      `json:"code"`
+	Description string      `json:"description,omitempty"`
+	Link        string      `json:"link,omitempty"`
+	Errors      interface{} `json:"errors,omitempty"`
+}
+
 type AppError struct {
-	Status  int    `json:"status"`
-	Message string `json:"error_message,omitempty"`
+	Status       int           `json:"status"`
+	Message      string        `json:"error_message,omitempty"`
+	ConflictData *interface{}  `json:"conflict_data,omitempty"`
+	ErrorDetails *ErrorDetails `json:"error_details,omitempty"`
+}
+
+func (err *AppError) Error() string {
+	str := fmt.Sprintf("%d %s", err.Status, err.Message)
+	if err.ErrorDetails != nil {
+		str += fmt.Sprintf("\ndetails: %#v", err.ErrorDetails)
+	}
+	return str
 }
 
 // Meta holds the status of the request informations
@@ -88,7 +105,7 @@ func Request[TReq interface{}, TRes interface{}](method string, url string, clie
 
 	if resp.StatusCode > 299 {
 		if response.Meta != nil {
-			return nil, fmt.Errorf("%s %s returned %d: %s", method, url, response.Meta.Meta.Status, response.Meta.Meta.Message)
+			return nil, fmt.Errorf("%s %s returned an error:\n%s", method, url, response.Meta.Meta.Error())
 		} else {
 			return nil, fmt.Errorf("%s %s returned %d with an unexpected error: %#v", method, url, resp.StatusCode, response)
 		}
