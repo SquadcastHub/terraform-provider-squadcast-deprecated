@@ -38,7 +38,7 @@ func resourceServiceMaintenance() *schema.Resource {
 				ValidateFunc: tfutils.ValidateObjectID,
 				ForceNew:     true,
 			},
-			"window": {
+			"windows": {
 				Description: "window",
 				Type:        schema.TypeList,
 				Optional:    true,
@@ -92,7 +92,7 @@ func resourceServiceMaintenanceCreate(ctx context.Context, d *schema.ResourceDat
 	client := meta.(*api.Client)
 
 	var windows []api.ServiceMaintenanceWindow
-	err := Decode(d.Get("window"), &windows)
+	err := Decode(d.Get("windows"), &windows)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -158,7 +158,7 @@ func resourceServiceMaintenanceRead(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 
-	err = d.Set("window", windows)
+	err = d.Set("windows", windows)
 	if err != nil {
 		return diag.FromErr(err)
 	}

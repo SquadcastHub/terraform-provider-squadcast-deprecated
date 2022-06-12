@@ -72,7 +72,7 @@ func resourceRoutingRules() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringInSlice([]string{"user", "escalationpolicy", "squad"}, false),
 						},
-						"basic_expression": {
+						"basic_expressions": {
 							Description: "basic expression.",
 							Type:        schema.TypeList,
 							Optional:    true,

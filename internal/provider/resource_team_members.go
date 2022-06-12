@@ -37,7 +37,7 @@ func resourceTeamMembers() *schema.Resource {
 				ValidateFunc: tfutils.ValidateObjectID,
 				ForceNew:     true,
 			},
-			"member": {
+			"members": {
 				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Resource{
@@ -117,7 +117,7 @@ func resourceTeamMembersCreate(ctx context.Context, d *schema.ResourceData, meta
 		return diag.FromErr(err)
 	}
 
-	members, _, err := decodeTeamMembers(team, d.Get("member"))
+	members, _, err := decodeTeamMembers(team, d.Get("members"))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -160,7 +160,7 @@ func resourceTeamMembersRead(ctx context.Context, d *schema.ResourceData, meta a
 		members = append(members, member)
 	}
 
-	d.Set("member", members)
+	d.Set("members", members)
 
 	return nil
 }
@@ -177,7 +177,7 @@ func resourceTeamMembersDelete(ctx context.Context, d *schema.ResourceData, meta
 		return diag.FromErr(err)
 	}
 
-	members, roleIDsMap, err := decodeTeamMembers(team, d.Get("member"))
+	members, roleIDsMap, err := decodeTeamMembers(team, d.Get("members"))
 	if err != nil {
 		return diag.FromErr(err)
 	}

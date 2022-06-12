@@ -25,7 +25,7 @@ type DeduplicationRule struct {
 	DependencyDeduplication bool                          `json:"dependency_deduplication" tf:"dependency_deduplication"`
 	TimeUnit                string                        `json:"time_unit" tf:"time_unit"`
 	TimeWindow              int                           `json:"time_window" tf:"time_window"`
-	BasicExpression         []*DeduplicationRuleCondition `json:"basic_expression" tf:"basic_expression"`
+	BasicExpression         []*DeduplicationRuleCondition `json:"basic_expression" tf:"basic_expressions"`
 }
 
 func (r *DeduplicationRule) Encode() (map[string]interface{}, error) {
@@ -38,7 +38,7 @@ func (r *DeduplicationRule) Encode() (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	m["basic_expression"] = basicExpression
+	m["basic_expressions"] = basicExpression
 
 	return m, nil
 }

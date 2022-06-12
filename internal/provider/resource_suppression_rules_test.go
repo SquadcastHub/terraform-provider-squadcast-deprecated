@@ -37,14 +37,14 @@ func TestAccResourceSuppressionRules(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "rules.0.is_basic", "false"),
 					resource.TestCheckResourceAttr(resourceName, "rules.0.description", "not basic"),
 					resource.TestCheckResourceAttr(resourceName, "rules.0.expression", "payload[\"event_id\"] == 40"),
-					resource.TestCheckResourceAttr(resourceName, "rules.0.basic_expression.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.basic_expressions.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "rules.1.is_basic", "true"),
 					resource.TestCheckResourceAttr(resourceName, "rules.1.description", "basic"),
 					resource.TestCheckResourceAttr(resourceName, "rules.1.expression", ""),
-					resource.TestCheckResourceAttr(resourceName, "rules.1.basic_expression.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "rules.1.basic_expression.0.lhs", "payload[\"foo\"]"),
-					resource.TestCheckResourceAttr(resourceName, "rules.1.basic_expression.0.op", "is"),
-					resource.TestCheckResourceAttr(resourceName, "rules.1.basic_expression.0.rhs", "bar"),
+					resource.TestCheckResourceAttr(resourceName, "rules.1.basic_expressions.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "rules.1.basic_expressions.0.lhs", "payload[\"foo\"]"),
+					resource.TestCheckResourceAttr(resourceName, "rules.1.basic_expressions.0.op", "is"),
+					resource.TestCheckResourceAttr(resourceName, "rules.1.basic_expressions.0.rhs", "bar"),
 					resource.TestCheckResourceAttr(resourceName, "team_id", "613611c1eb22db455cfa789f"),
 					resource.TestCheckResourceAttr(resourceName, "service_id", "61361611c2fc70c3101ca7dd"),
 				),
@@ -111,7 +111,7 @@ resource "squadcast_suppression_rules" "test" {
 		is_basic = true
 		description = "basic"
 
-		basic_expression {
+		basic_expressions {
 			lhs = "payload[\"foo\"]"
 			op = "is"
 			rhs = "bar"

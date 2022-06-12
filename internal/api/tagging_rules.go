@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"sort"
 
 	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
 )
@@ -30,7 +31,7 @@ func (tv *TaggingRuleTagValue) Encode() (map[string]interface{}, error) {
 type TaggingRule struct {
 	IsBasic         bool                           `json:"is_basic" tf:"is_basic"`
 	Expression      string                         `json:"expression" tf:"expression"`
-	BasicExpression []*TaggingRuleCondition        `json:"basic_expression" tf:"basic_expression"`
+	BasicExpression []*TaggingRuleCondition        `json:"basic_expression" tf:"basic_expressions"`
 	Tags            map[string]TaggingRuleTagValue `json:"tags" tf:"-"`
 }
 
@@ -44,11 +45,18 @@ func (r *TaggingRule) Encode() (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	m["basic_expression"] = basicExpression
+	m["basic_expressions"] = basicExpression
 
 	tags := make([]interface{}, 0, len(r.Tags))
 
-	for k, v := range r.Tags {
+	keys := make([]string, 0, len(r.Tags))
+	for k := range r.Tags {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		v := r.Tags[k]
 		mtag, err := v.Encode()
 		if err != nil {
 			return nil, err

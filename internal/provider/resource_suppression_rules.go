@@ -65,7 +65,7 @@ func resourceSuppressionRules() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 						},
-						"basic_expression": {
+						"basic_expressions": {
 							Description: "basic expression.",
 							Type:        schema.TypeList,
 							Optional:    true,

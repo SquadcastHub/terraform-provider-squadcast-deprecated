@@ -25,7 +25,7 @@ type RouteTo struct {
 type RoutingRule struct {
 	IsBasic         bool                    `json:"is_basic" tf:"is_basic"`
 	Expression      string                  `json:"expression" tf:"expression"`
-	BasicExpression []*RoutingRuleCondition `json:"basic_expression" tf:"basic_expression"`
+	BasicExpression []*RoutingRuleCondition `json:"basic_expression" tf:"basic_expressions"`
 	RouteTo         RouteTo                 `json:"route_to" tf:"route_to,squash"`
 }
 
@@ -39,7 +39,7 @@ func (r *RoutingRule) Encode() (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	m["basic_expression"] = basicExpression
+	m["basic_expressions"] = basicExpression
 
 	return m, nil
 }

@@ -82,7 +82,7 @@ func resourceDeduplicationRules() *schema.Resource {
 							Optional:    true,
 							Default:     "hour",
 						},
-						"basic_expression": {
+						"basic_expressions": {
 							Description: "basic expression.",
 							Type:        schema.TypeList,
 							Optional:    true,

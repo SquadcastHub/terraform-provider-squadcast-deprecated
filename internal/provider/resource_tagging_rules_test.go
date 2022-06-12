@@ -39,17 +39,17 @@ func TestAccResourceTaggingRules(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "rules.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "rules.0.is_basic", "false"),
 					resource.TestCheckResourceAttr(resourceName, "rules.0.expression", "payload[\"event_id\"] == 40"),
-					resource.TestCheckResourceAttr(resourceName, "rules.0.basic_expression.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.basic_expressions.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "rules.0.tags.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "rules.0.tags.0.key", "MyTag"),
 					resource.TestCheckResourceAttr(resourceName, "rules.0.tags.0.value", "foo"),
 					resource.TestCheckResourceAttr(resourceName, "rules.0.tags.0.color", "#ababab"),
 					resource.TestCheckResourceAttr(resourceName, "rules.1.is_basic", "true"),
 					resource.TestCheckResourceAttr(resourceName, "rules.1.expression", ""),
-					resource.TestCheckResourceAttr(resourceName, "rules.1.basic_expression.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "rules.1.basic_expression.0.lhs", "payload[\"foo\"]"),
-					resource.TestCheckResourceAttr(resourceName, "rules.1.basic_expression.0.op", "is"),
-					resource.TestCheckResourceAttr(resourceName, "rules.1.basic_expression.0.rhs", "bar"),
+					resource.TestCheckResourceAttr(resourceName, "rules.1.basic_expressions.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "rules.1.basic_expressions.0.lhs", "payload[\"foo\"]"),
+					resource.TestCheckResourceAttr(resourceName, "rules.1.basic_expressions.0.op", "is"),
+					resource.TestCheckResourceAttr(resourceName, "rules.1.basic_expressions.0.rhs", "bar"),
 					resource.TestCheckResourceAttr(resourceName, "rules.1.tags.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "rules.1.tags.0.key", "MyTag"),
 					resource.TestCheckResourceAttr(resourceName, "rules.1.tags.0.value", "foo"),
@@ -132,7 +132,7 @@ resource "squadcast_tagging_rules" "test" {
 	rules {
 		is_basic = true
 
-		basic_expression {
+		basic_expressions {
 			lhs = "payload[\"foo\"]"
 			op = "is"
 			rhs = "bar"

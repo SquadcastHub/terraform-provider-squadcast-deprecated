@@ -22,7 +22,7 @@ type SuppressionRule struct {
 	IsBasic         bool                        `json:"is_basic" tf:"is_basic"`
 	Description     string                      `json:"description" tf:"description"`
 	Expression      string                      `json:"expression" tf:"expression"`
-	BasicExpression []*SuppressionRuleCondition `json:"basic_expression" tf:"basic_expression"`
+	BasicExpression []*SuppressionRuleCondition `json:"basic_expression" tf:"basic_expressions"`
 }
 
 func (r *SuppressionRule) Encode() (map[string]interface{}, error) {
@@ -35,7 +35,7 @@ func (r *SuppressionRule) Encode() (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	m["basic_expression"] = basicExpression
+	m["basic_expressions"] = basicExpression
 
 	return m, nil
 }
