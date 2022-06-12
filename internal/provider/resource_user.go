@@ -159,6 +159,10 @@ func resourceUserDelete(ctx context.Context, d *schema.ResourceData, meta any) d
 
 	_, err := client.DeleteUser(ctx, d.Id())
 	if err != nil {
+		if api.IsResourceNotFoundError(err) {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(err)
 	}
 

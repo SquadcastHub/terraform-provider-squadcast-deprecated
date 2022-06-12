@@ -143,6 +143,10 @@ func resourceSquadDelete(ctx context.Context, d *schema.ResourceData, meta any) 
 
 	_, err := client.DeleteSquad(ctx, d.Id())
 	if err != nil {
+		if api.IsResourceNotFoundError(err) {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(err)
 	}
 

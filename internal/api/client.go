@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 )
 
 type Client struct {
@@ -39,7 +40,7 @@ type AppError struct {
 }
 
 func (err *AppError) Error() string {
-	str := fmt.Sprintf("%d %s", err.Status, err.Message)
+	str := fmt.Sprintf("[%d] %s", err.Status, err.Message)
 	if err.ErrorDetails != nil {
 		str += fmt.Sprintf("\ndetails: %#v", err.ErrorDetails)
 	}
@@ -123,4 +124,8 @@ func RequestSlice[TReq interface{}, TRes interface{}](method string, url string,
 	}
 
 	return *data, nil
+}
+
+func IsResourceNotFoundError(e error) bool {
+	return strings.Contains(e.Error(), "[404]")
 }

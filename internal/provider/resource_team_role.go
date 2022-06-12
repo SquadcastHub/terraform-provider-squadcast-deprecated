@@ -142,6 +142,10 @@ func resourceTeamRoleDelete(ctx context.Context, d *schema.ResourceData, meta an
 
 	_, err := client.DeleteTeamRole(ctx, d.Get("team_id").(string), d.Id())
 	if err != nil {
+		if api.IsResourceNotFoundError(err) {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(err)
 	}
 
