@@ -14,8 +14,9 @@ func Encode(input interface{}) (map[string]interface{}, error) {
 	var m map[string]interface{}
 
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Result:  &m,
-		TagName: EncoderStructTag,
+		Result:               &m,
+		TagName:              EncoderStructTag,
+		IgnoreUntaggedFields: true,
 	})
 	if err != nil {
 		return nil, err

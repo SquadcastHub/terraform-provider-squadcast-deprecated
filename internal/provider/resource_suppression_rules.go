@@ -110,9 +110,10 @@ func resourceSuppressionRulesImport(ctx context.Context, d *schema.ResourceData,
 
 func Decode(input any, output any) error {
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Result:     output,
-		TagName:    tfutils.EncoderStructTag,
-		ZeroFields: true,
+		Result:               output,
+		TagName:              tfutils.EncoderStructTag,
+		ZeroFields:           true,
+		IgnoreUntaggedFields: true,
 	})
 	if err != nil {
 		return err

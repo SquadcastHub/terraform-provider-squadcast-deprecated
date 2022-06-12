@@ -41,89 +41,18 @@ func resourceUser() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1000),
 			},
-			// "name": {
-			// 	Description: "User name.",
-			// 	Type:        schema.TypeString,
-			// 	Computed:    true,
-			// },
 			"email": {
 				Description:  "User email.",
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotWhiteSpace,
 			},
-			// "is_email_verified": {
-			// 	Description: "User is_email_verified.",
-			// 	Type:        schema.TypeBool,
-			// 	Computed:    true,
-			// },
-			// "phone": {
-			// 	Description: "User phone.",
-			// 	Type:        schema.TypeString,
-			// 	Computed:    true,
-			// },
-			// "is_phone_verified": {
-			// 	Description: "User is_phone_verified.",
-			// 	Type:        schema.TypeBool,
-			// 	Computed:    true,
-			// },
 			"role": {
 				Description:  "User role.",
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringInSlice([]string{"user", "stakeholder"}, false),
 			},
-			// "time_zone": {
-			// 	Description: "User time_zone.",
-			// 	Type:        schema.TypeString,
-			// 	Computed:    true,
-			// },
-			// "abilities": {
-			// 	Description: "user abilities.",
-			// 	Type:        schema.TypeList,
-			// 	Optional:    true,
-			// 	Elem: &schema.Schema{
-			// 		Type: schema.TypeString,
-			// 	},
-			// },
-			// "notification_rules": {
-			// 	Description: "user notification_rules.",
-			// 	Type:        schema.TypeList,
-			// 	Optional:    true,
-			// 	Elem: &schema.Resource{
-			// 		Schema: map[string]*schema.Schema{
-			// 			"type": {
-			// 				Description: "notification rule type.",
-			// 				Type:        schema.TypeString,
-			// 				Computed:    true,
-			// 			},
-			// 			"delay_minutes": {
-			// 				Description: "notification rule delay_minutes.",
-			// 				Type:        schema.TypeInt,
-			// 				Computed:    true,
-			// 			},
-			// 		},
-			// 	},
-			// },
-			// "oncall_reminder_rules": {
-			// 	Description: "user oncall_reminder_rules.",
-			// 	Type:        schema.TypeList,
-			// 	Optional:    true,
-			// 	Elem: &schema.Resource{
-			// 		Schema: map[string]*schema.Schema{
-			// 			"type": {
-			// 				Description: "oncall reminder rule type.",
-			// 				Type:        schema.TypeString,
-			// 				Computed:    true,
-			// 			},
-			// 			"delay_minutes": {
-			// 				Description: "oncall reminder rule delay_minutes.",
-			// 				Type:        schema.TypeInt,
-			// 				Computed:    true,
-			// 			},
-			// 		},
-			// 	},
-			// },
 		},
 	}
 }
