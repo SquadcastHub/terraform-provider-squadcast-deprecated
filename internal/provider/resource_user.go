@@ -54,6 +54,14 @@ func resourceUser() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validation.StringInSlice([]string{"user", "stakeholder"}, false),
 			},
+			"abilities": {
+				Description: "user abilities.",
+				Type:        schema.TypeList,
+				Optional:    true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -85,6 +93,16 @@ func resourceUserCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 		return diag.FromErr(err)
 	}
 	d.SetId(user.ID)
+
+	if d.HasChange("abilities") {
+		_, err := client.UpdateUserAbilities(ctx, &api.UpdateUserAbilitiesReq{
+			UserID:    user.ID,
+			Abilities: tfutils.ListToSlice[string](d.Get("abilities")),
+		})
+		if err != nil {
+			return diag.FromErr(err)
+		}
+	}
 
 	return resourceUserRead(ctx, d, meta)
 }
@@ -121,6 +139,16 @@ func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, meta any) d
 	})
 	if err != nil {
 		return diag.FromErr(err)
+	}
+
+	if d.HasChange("abilities") {
+		_, err := client.UpdateUserAbilities(ctx, &api.UpdateUserAbilitiesReq{
+			UserID:    d.Id(),
+			Abilities: tfutils.ListToSlice[string](d.Get("abilities")),
+		})
+		if err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	return resourceUserRead(ctx, d, meta)

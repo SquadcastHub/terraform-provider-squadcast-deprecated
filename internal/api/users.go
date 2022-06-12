@@ -62,14 +62,6 @@ type DataSourceUser struct {
 	Title                     string                      `json:"title" tf:"-"`
 }
 
-type User struct {
-	ID        string `json:"id" tf:"id"`
-	Email     string `json:"email" tf:"email"`
-	FirstName string `json:"first_name" tf:"first_name"`
-	LastName  string `json:"last_name" tf:"last_name"`
-	Role      string `json:"role" tf:"role"`
-}
-
 func (u *DataSourceUser) Encode() (map[string]interface{}, error) {
 	u.Name = u.FirstName + " " + u.LastName
 
@@ -101,7 +93,22 @@ func (u *DataSourceUser) Encode() (map[string]interface{}, error) {
 	return m, nil
 }
 
-func (u *User) Encode() (map[string]interface{}, error) {
+type ResourceUser struct {
+	ID        string `json:"id" tf:"id"`
+	Email     string `json:"email" tf:"email"`
+	FirstName string `json:"first_name" tf:"first_name"`
+	LastName  string `json:"last_name" tf:"last_name"`
+	Role      string `json:"role" tf:"role"`
+
+	Abilities      []*Ability `json:"abilities" tf:"-"`
+	AbilitiesSlugs []string   `json:"-" tf:"abilities"`
+}
+
+func (u *ResourceUser) Encode() (map[string]interface{}, error) {
+	for _, v := range u.Abilities {
+		u.AbilitiesSlugs = append(u.AbilitiesSlugs, v.Slug)
+	}
+
 	m, err := tfutils.Encode(u)
 	if err != nil {
 		return nil, err
@@ -110,10 +117,10 @@ func (u *User) Encode() (map[string]interface{}, error) {
 	return m, nil
 }
 
-func (client *Client) GetUserById(ctx context.Context, id string) (*User, error) {
+func (client *Client) GetUserById(ctx context.Context, id string) (*ResourceUser, error) {
 	url := fmt.Sprintf("%s/users/%s", client.BaseURLV3, id)
 
-	return Request[any, User](http.MethodGet, url, client, ctx, nil)
+	return Request[any, ResourceUser](http.MethodGet, url, client, ctx, nil)
 }
 
 func (client *Client) GetUserByEmail(ctx context.Context, email string) (*DataSourceUser, error) {
@@ -131,10 +138,10 @@ func (client *Client) GetUserByEmail(ctx context.Context, email string) (*DataSo
 	return users[0], nil
 }
 
-func (client *Client) ListUsers(ctx context.Context) ([]*User, error) {
+func (client *Client) ListUsers(ctx context.Context) ([]*ResourceUser, error) {
 	url := fmt.Sprintf("%s/users", client.BaseURLV3)
 
-	return RequestSlice[any, User](http.MethodGet, url, client, ctx, nil)
+	return RequestSlice[any, ResourceUser](http.MethodGet, url, client, ctx, nil)
 }
 
 type CreateUserReq struct {
@@ -148,17 +155,40 @@ type UpdateUserReq struct {
 	Role string `json:"role"`
 }
 
-func (client *Client) CreateUser(ctx context.Context, req *CreateUserReq) (*User, error) {
-	url := fmt.Sprintf("%s/users", client.BaseURLV3)
-	return Request[CreateUserReq, User](http.MethodPost, url, client, ctx, req)
+type CreateUpdateUserResp struct {
+	ID string `json:"id" tf:"id"`
 }
 
-func (client *Client) UpdateUser(ctx context.Context, id string, req *UpdateUserReq) (*User, error) {
+type UpdateUserAbilitiesReq struct {
+	UserID    string   `json:"user_id"`
+	Abilities []string `json:"abilities"`
+}
+
+func (client *Client) CreateUser(ctx context.Context, req *CreateUserReq) (*CreateUpdateUserResp, error) {
+	url := fmt.Sprintf("%s/users", client.BaseURLV3)
+
+	return Request[CreateUserReq, CreateUpdateUserResp](http.MethodPost, url, client, ctx, req)
+}
+
+func (client *Client) UpdateUser(ctx context.Context, id string, req *UpdateUserReq) (*CreateUpdateUserResp, error) {
 	url := fmt.Sprintf("%s/users/%s", client.BaseURLV3, id)
-	return Request[UpdateUserReq, User](http.MethodPut, url, client, ctx, req)
+
+	return Request[UpdateUserReq, CreateUpdateUserResp](http.MethodPut, url, client, ctx, req)
 }
 
 func (client *Client) DeleteUser(ctx context.Context, id string) (*any, error) {
 	url := fmt.Sprintf("%s/users/%s", client.BaseURLV3, id)
+
 	return Request[any, any](http.MethodDelete, url, client, ctx, nil)
+}
+
+func (client *Client) UpdateUserAbilities(ctx context.Context, req *UpdateUserAbilitiesReq) (*any, error) {
+	url := fmt.Sprintf("%s/users/abilities", client.BaseURLV3)
+
+	type wrapped struct {
+		Data []*UpdateUserAbilitiesReq `json:"data"`
+	}
+	bulkReq := wrapped{[]*UpdateUserAbilitiesReq{req}}
+
+	return Request[wrapped, any](http.MethodPut, url, client, ctx, &bulkReq)
 }
