@@ -17,42 +17,21 @@ func dataSourceTeam() *schema.Resource {
 			"id": {
 				Description: "Team id.",
 				Type:        schema.TypeString,
-				Optional:    true,
+				Computed:    true,
 			},
 			"name": {
-				Description:  "Team name.",
-				Type:         schema.TypeString,
-				Optional:     true,
-				ExactlyOneOf: []string{"id", "name"},
+				Description: "Team name.",
+				Type:        schema.TypeString,
+				Required:    true,
 			},
 			"description": {
 				Description: "Team description.",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
-			"slug": {
-				Description: "Team slug.",
-				Type:        schema.TypeString,
-				Computed:    true,
-			},
 			"default": {
 				Description: "Team is default?.",
 				Type:        schema.TypeBool,
-				Computed:    true,
-			},
-			"created_at": {
-				Description: "Team created at.",
-				Type:        schema.TypeString,
-				Computed:    true,
-			},
-			"updated_at": {
-				Description: "Team updated at.",
-				Type:        schema.TypeString,
-				Computed:    true,
-			},
-			"created_by": {
-				Description: "Team created by.",
-				Type:        schema.TypeString,
 				Computed:    true,
 			},
 			"members": {
@@ -68,7 +47,9 @@ func dataSourceTeam() *schema.Resource {
 						"role_ids": {
 							Type:     schema.TypeList,
 							Computed: true,
-							Elem:     schema.TypeString,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 					},
 				},
@@ -88,11 +69,6 @@ func dataSourceTeam() *schema.Resource {
 							Type:        schema.TypeString,
 							Computed:    true,
 						},
-						"slug": {
-							Description: "Role slug.",
-							Type:        schema.TypeString,
-							Computed:    true,
-						},
 						"default": {
 							Description: "Role is default?.",
 							Type:        schema.TypeBool,
@@ -101,7 +77,9 @@ func dataSourceTeam() *schema.Resource {
 						"abilities": {
 							Type:     schema.TypeList,
 							Computed: true,
-							Elem:     schema.TypeString,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 					},
 				},
@@ -113,12 +91,12 @@ func dataSourceTeam() *schema.Resource {
 func dataSourceTeamRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*api.Client)
 
-	id, ok := d.GetOk("id")
+	name, ok := d.GetOk("name")
 	if !ok {
-		return diag.Errorf("invalid team id provided")
+		return diag.Errorf("invalid team name provided")
 	}
 
-	team, err := client.GetTeamById(ctx, id.(string))
+	team, err := client.GetTeamByName(ctx, name.(string))
 	if err != nil {
 		return diag.FromErr(err)
 	}

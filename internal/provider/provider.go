@@ -35,6 +35,7 @@ func New(version string) func() *schema.Provider {
 				"squadcast_service":           dataSourceService(),
 				"squadcast_escalation_policy": dataSourceEscalationPolicy(),
 				// "squadcast_teams": dataSourceTeams(),
+				"squadcast_team": dataSourceTeam(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
 				"squadcast_squad":               resourceSquad(),
@@ -43,6 +44,11 @@ func New(version string) func() *schema.Provider {
 				"squadcast_routing_rules":       resourceRoutingRules(),
 				"squadcast_tagging_rules":       resourceTaggingRules(),
 				"squadcast_service":             resourceService(),
+				"squadcast_service_maintenance": resourceServiceMaintenance(),
+				"squadcast_team":                resourceTeam(),
+				"squadcast_team_role":           resourceTeamRole(),
+				"squadcast_team_members":        resourceTeamMembers(),
+				"squadcast_user":                resourceUser(),
 			},
 			Schema: map[string]*schema.Schema{
 				"organization_id": {

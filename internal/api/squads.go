@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
 )
@@ -39,7 +40,7 @@ func (client *Client) GetSquadById(ctx context.Context, teamID string, id string
 }
 
 func (client *Client) GetSquadByName(ctx context.Context, teamID string, name string) (*Squad, error) {
-	url := fmt.Sprintf("%s/squads/by-name?name=%s&owner_id=%s", client.BaseURLV3, name, teamID)
+	url := fmt.Sprintf("%s/squads/by-name?name=%s&owner_id=%s", client.BaseURLV3, url.QueryEscape(name), teamID)
 
 	return Request[any, Squad](http.MethodGet, url, client, ctx, nil)
 }
@@ -63,15 +64,18 @@ type UpdateSquadReq struct {
 
 func (client *Client) CreateSquad(ctx context.Context, req *CreateSquadReq) (*Squad, error) {
 	url := fmt.Sprintf("%s/squads", client.BaseURLV3)
+
 	return Request[CreateSquadReq, Squad](http.MethodPost, url, client, ctx, req)
 }
 
 func (client *Client) UpdateSquad(ctx context.Context, id string, req *UpdateSquadReq) (*Squad, error) {
 	url := fmt.Sprintf("%s/squads/%s", client.BaseURLV3, id)
+
 	return Request[UpdateSquadReq, Squad](http.MethodPut, url, client, ctx, req)
 }
 
 func (client *Client) DeleteSquad(ctx context.Context, id string) (*any, error) {
 	url := fmt.Sprintf("%s/squads/%s", client.BaseURLV3, id)
+
 	return Request[any, any](http.MethodDelete, url, client, ctx, nil)
 }

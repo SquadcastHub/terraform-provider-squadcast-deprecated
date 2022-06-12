@@ -1,0 +1,208 @@
+package provider
+
+import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+)
+
+func resourceUser() *schema.Resource {
+	return &schema.Resource{
+		Description: "User resource.",
+
+		CreateContext: resourceUserCreate,
+		ReadContext:   resourceUserRead,
+		UpdateContext: resourceUserUpdate,
+		DeleteContext: resourceUserDelete,
+		Importer: &schema.ResourceImporter{
+			StateContext: resourceUserImport,
+		},
+
+		Schema: map[string]*schema.Schema{
+			"id": {
+				Description: "User id.",
+				Type:        schema.TypeString,
+				Computed:    true,
+			},
+			"first_name": {
+				Description:  "User first name.",
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringLenBetween(1, 1000),
+			},
+			"last_name": {
+				Description:  "User last name.",
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringLenBetween(1, 1000),
+			},
+			// "name": {
+			// 	Description: "User name.",
+			// 	Type:        schema.TypeString,
+			// 	Computed:    true,
+			// },
+			"email": {
+				Description:  "User email.",
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotWhiteSpace,
+			},
+			// "is_email_verified": {
+			// 	Description: "User is_email_verified.",
+			// 	Type:        schema.TypeBool,
+			// 	Computed:    true,
+			// },
+			// "phone": {
+			// 	Description: "User phone.",
+			// 	Type:        schema.TypeString,
+			// 	Computed:    true,
+			// },
+			// "is_phone_verified": {
+			// 	Description: "User is_phone_verified.",
+			// 	Type:        schema.TypeBool,
+			// 	Computed:    true,
+			// },
+			"role": {
+				Description:  "User role.",
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice([]string{"user", "stakeholder"}, false),
+			},
+			// "time_zone": {
+			// 	Description: "User time_zone.",
+			// 	Type:        schema.TypeString,
+			// 	Computed:    true,
+			// },
+			// "abilities": {
+			// 	Description: "user abilities.",
+			// 	Type:        schema.TypeList,
+			// 	Optional:    true,
+			// 	Elem: &schema.Schema{
+			// 		Type: schema.TypeString,
+			// 	},
+			// },
+			// "notification_rules": {
+			// 	Description: "user notification_rules.",
+			// 	Type:        schema.TypeList,
+			// 	Optional:    true,
+			// 	Elem: &schema.Resource{
+			// 		Schema: map[string]*schema.Schema{
+			// 			"type": {
+			// 				Description: "notification rule type.",
+			// 				Type:        schema.TypeString,
+			// 				Computed:    true,
+			// 			},
+			// 			"delay_minutes": {
+			// 				Description: "notification rule delay_minutes.",
+			// 				Type:        schema.TypeInt,
+			// 				Computed:    true,
+			// 			},
+			// 		},
+			// 	},
+			// },
+			// "oncall_reminder_rules": {
+			// 	Description: "user oncall_reminder_rules.",
+			// 	Type:        schema.TypeList,
+			// 	Optional:    true,
+			// 	Elem: &schema.Resource{
+			// 		Schema: map[string]*schema.Schema{
+			// 			"type": {
+			// 				Description: "oncall reminder rule type.",
+			// 				Type:        schema.TypeString,
+			// 				Computed:    true,
+			// 			},
+			// 			"delay_minutes": {
+			// 				Description: "oncall reminder rule delay_minutes.",
+			// 				Type:        schema.TypeInt,
+			// 				Computed:    true,
+			// 			},
+			// 		},
+			// 	},
+			// },
+		},
+	}
+}
+
+func resourceUserImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+	client := meta.(*api.Client)
+	email := d.Id()
+
+	user, err := client.GetUserByEmail(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+	d.SetId(user.ID)
+
+	return []*schema.ResourceData{d}, nil
+}
+
+func resourceUserCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	client := meta.(*api.Client)
+
+	tflog.Info(ctx, "Creating user", map[string]interface{}{})
+	user, err := client.CreateUser(ctx, &api.CreateUserReq{
+		FirstName: d.Get("first_name").(string),
+		LastName:  d.Get("last_name").(string),
+		Email:     d.Get("email").(string),
+		Role:      d.Get("role").(string),
+	})
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	d.SetId(user.ID)
+
+	return resourceUserRead(ctx, d, meta)
+}
+
+func resourceUserRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	client := meta.(*api.Client)
+
+	id := d.Id()
+
+	tflog.Info(ctx, "Reading user", map[string]interface{}{
+		"id": id,
+	})
+	user, err := client.GetUserById(ctx, id)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	if err = tfutils.EncodeAndSet(user, d); err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
+}
+
+func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	client := meta.(*api.Client)
+
+	if d.HasChangeExcept("role") {
+		diag.Errorf("cannot change any attribute other than `role` for user `%s`. They can be only modified by the respective user in their profile page.", d.Get("email").(string))
+	}
+
+	_, err := client.UpdateUser(ctx, d.Id(), &api.UpdateUserReq{
+		Role: d.Get("role").(string),
+	})
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return resourceUserRead(ctx, d, meta)
+}
+
+func resourceUserDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	client := meta.(*api.Client)
+
+	_, err := client.DeleteUser(ctx, d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
+}
