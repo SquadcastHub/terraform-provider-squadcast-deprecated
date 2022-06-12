@@ -17,10 +17,11 @@ type Client struct {
 	AccessToken    string
 	OrganizationID string
 
-	UserAgent   string
-	BaseURLV2   string
-	BaseURLV3   string
-	AuthBaseURL string
+	UserAgent        string
+	BaseURLV2        string
+	BaseURLV3        string
+	AuthBaseURL      string
+	IngestionBaseURL string
 }
 
 type ErrorDetails struct {

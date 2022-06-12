@@ -32,6 +32,7 @@ func TestAccResourceService(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "api_key"),
 					resource.TestCheckResourceAttr(resourceName, "email", "testfoo@squadcast.incidents.squadcast.com"),
 					resource.TestCheckResourceAttr(resourceName, "dependencies.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "alert_source_endpoints.email", "testfoo@squadcast.incidents.squadcast.com"),
 				),
 			},
 			{
@@ -46,6 +47,7 @@ func TestAccResourceService(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "api_key"),
 					resource.TestCheckResourceAttr(resourceName, "email", "foomp2@squadcast.incidents.squadcast.com"),
 					resource.TestCheckResourceAttr(resourceName, "dependencies.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "alert_source_endpoints.email", "foomp2@squadcast.incidents.squadcast.com"),
 				),
 			},
 			{
@@ -61,6 +63,7 @@ func TestAccResourceService(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "email", "foomp2@squadcast.incidents.squadcast.com"),
 					resource.TestCheckResourceAttr(resourceName, "dependencies.#", "1"),
 					resource.TestCheckResourceAttrPair(resourceName, "dependencies.0", "squadcast_service.test_parent", "id"),
+					resource.TestCheckResourceAttr(resourceName, "alert_source_endpoints.email", "foomp2@squadcast.incidents.squadcast.com"),
 				),
 			},
 			{

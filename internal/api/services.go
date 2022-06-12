@@ -5,23 +5,28 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
 )
 
 type Service struct {
-	ID                 string   `json:"id" tf:"id"`
-	Name               string   `json:"name" tf:"name"`
-	APIKey             string   `json:"api_key" tf:"api_key"`
-	Email              string   `json:"email" tf:"email"`
-	Description        string   `json:"description" tf:"description"`
-	EscalationPolicyID string   `json:"escalation_policy_id" tf:"escalation_policy_id"`
-	OnMaintenance      bool     `json:"on_maintenance" tf:"-"`
-	Owner              OwnerRef `json:"owner" tf:"-"`
-	Dependencies       []string `json:"depends" tf:"dependencies"`
+	ID                 string            `json:"id" tf:"id"`
+	Name               string            `json:"name" tf:"name"`
+	APIKey             string            `json:"api_key" tf:"api_key"`
+	Email              string            `json:"email" tf:"email"`
+	EmailPrefix        string            `json:"-" tf:"email_prefix"`
+	Description        string            `json:"description" tf:"description"`
+	EscalationPolicyID string            `json:"escalation_policy_id" tf:"escalation_policy_id"`
+	OnMaintenance      bool              `json:"on_maintenance" tf:"-"`
+	Owner              OwnerRef          `json:"owner" tf:"-"`
+	Dependencies       []string          `json:"depends" tf:"dependencies"`
+	AlertSources       map[string]string `json:"-" tf:"alert_source_endpoints"`
 }
 
 func (s *Service) Encode() (map[string]interface{}, error) {
+	s.EmailPrefix = strings.Split(s.Email, "@")[0]
+
 	m, err := tfutils.Encode(s)
 	if err != nil {
 		return nil, err

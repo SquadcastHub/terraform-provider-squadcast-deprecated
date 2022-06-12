@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -78,6 +77,14 @@ func resourceService() *schema.Resource {
 					ValidateFunc: tfutils.ValidateObjectID,
 				},
 			},
+			"alert_source_endpoints": {
+				Description: "alert sources.",
+				Type:        schema.TypeMap,
+				Computed:    true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -142,8 +149,11 @@ func resourceServiceRead(ctx context.Context, d *schema.ResourceData, meta any) 
 		return diag.FromErr(err)
 	}
 
-	emailPrefix := strings.Split(service.Email, "@")[0]
-	d.Set("email_prefix", emailPrefix)
+	alertSources, err := client.ListAlertSources(ctx)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	service.AlertSources = alertSources.Available().EndpointMap(client.IngestionBaseURL, service)
 
 	if err = tfutils.EncodeAndSet(service, d); err != nil {
 		return diag.FromErr(err)
