@@ -73,6 +73,7 @@ func Request[TReq interface{}, TRes interface{}](method string, url string, clie
 	if err != nil {
 		return nil, err
 	}
+
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", client.AccessToken))
 	req.Header.Set("User-Agent", client.UserAgent)
 

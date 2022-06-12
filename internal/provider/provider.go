@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
 )
 
 func init() {
@@ -50,13 +49,6 @@ func New(version string) func() *schema.Provider {
 				"squadcast_user":                resourceUser(),
 			},
 			Schema: map[string]*schema.Schema{
-				"organization_id": {
-					Description:  "org id",
-					Type:         schema.TypeString,
-					Required:     true,
-					DefaultFunc:  schema.EnvDefaultFunc("SQUADCAST_ORGANIZATION_ID", ""),
-					ValidateFunc: tfutils.ValidateObjectID,
-				},
 				"region": {
 					Description:  "region",
 					Type:         schema.TypeString,
@@ -87,10 +79,8 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 
 		region := rd.Get("region").(string)
 		refreshToken := rd.Get("refresh_token").(string)
-		organizationID := rd.Get("organization_id").(string)
 
 		client.RefreshToken = refreshToken
-		client.OrganizationID = organizationID
 
 		switch region {
 		case "us":
@@ -117,7 +107,7 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 			client.IngestionBaseURL = fmt.Sprintf("https://api.%s", client.Host)
 		}
 
-		err := client.GetAccessToken(ctx)
+		token, err := client.GetAccessToken(ctx)
 		if err != nil {
 			return nil, append(diags, diag.Diagnostic{
 				Severity: diag.Error,
@@ -125,6 +115,17 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 				Detail:   err.Error(),
 			})
 		}
+		client.AccessToken = token.AccessToken
+
+		org, err := client.GetCurrentOrganization(ctx)
+		if err != nil {
+			return nil, append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "An error occurred while fetching the organization.",
+				Detail:   err.Error(),
+			})
+		}
+		client.OrganizationID = org.ID
 
 		return client, nil
 	}
