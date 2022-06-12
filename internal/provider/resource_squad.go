@@ -42,6 +42,7 @@ func resourceSquad() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: tfutils.ValidateObjectID,
+				ForceNew:     true,
 			},
 			"member_ids": {
 				Type:     schema.TypeList,

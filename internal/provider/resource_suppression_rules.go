@@ -36,12 +36,14 @@ func resourceSuppressionRules() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: tfutils.ValidateObjectID,
+				ForceNew:     true,
 			},
 			"service_id": {
 				Description:  "Service id.",
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: tfutils.ValidateObjectID,
+				ForceNew:     true,
 			},
 			"rules": {
 				Type:     schema.TypeList,

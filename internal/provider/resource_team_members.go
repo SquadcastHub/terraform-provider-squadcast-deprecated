@@ -35,6 +35,7 @@ func resourceTeamMembers() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: tfutils.ValidateObjectID,
+				ForceNew:     true,
 			},
 			"member": {
 				Type:     schema.TypeList,

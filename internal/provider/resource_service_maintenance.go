@@ -36,6 +36,7 @@ func resourceServiceMaintenance() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: tfutils.ValidateObjectID,
+				ForceNew:     true,
 			},
 			"window": {
 				Description: "window",

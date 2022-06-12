@@ -46,6 +46,7 @@ func resourceService() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: tfutils.ValidateObjectID,
+				ForceNew:     true,
 			},
 			"escalation_policy_id": {
 				Description:  "Escalation policy id.",

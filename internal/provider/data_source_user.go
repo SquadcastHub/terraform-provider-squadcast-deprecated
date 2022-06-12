@@ -43,6 +43,7 @@ func dataSourceUser() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotWhiteSpace,
+				ForceNew:     true,
 			},
 			"is_email_verified": {
 				Description: "User is_email_verified.",

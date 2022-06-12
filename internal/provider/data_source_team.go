@@ -23,6 +23,7 @@ func dataSourceTeam() *schema.Resource {
 				Description: "Team name.",
 				Type:        schema.TypeString,
 				Required:    true,
+				ForceNew:    true,
 			},
 			"description": {
 				Description: "Team description.",

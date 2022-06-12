@@ -34,6 +34,7 @@ func resourceTeamRole() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: tfutils.ValidateObjectID,
+				ForceNew:     true,
 			},
 			"name": {
 				Description:  "TeamRole name.",
