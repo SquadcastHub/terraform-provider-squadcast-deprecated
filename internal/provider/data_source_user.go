@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 func dataSourceUser() *schema.Resource {
@@ -130,7 +130,7 @@ func dataSourceUserRead(ctx context.Context, d *schema.ResourceData, meta any) d
 
 	email := d.Get("email").(string)
 
-	tflog.Info(ctx, "Reading user", map[string]interface{}{
+	tflog.Info(ctx, "Reading user", tf.M{
 		"email": email,
 	})
 	user, err := client.GetUserByEmail(ctx, email)
@@ -138,7 +138,7 @@ func dataSourceUserRead(ctx context.Context, d *schema.ResourceData, meta any) d
 		return diag.FromErr(err)
 	}
 
-	if err = tfutils.EncodeAndSet(user, d); err != nil {
+	if err = tf.EncodeAndSet(user, d); err != nil {
 		return diag.FromErr(err)
 	}
 

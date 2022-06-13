@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -35,14 +35,14 @@ func resourceSuppressionRules() *schema.Resource {
 				Description:  "Team id.",
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: tfutils.ValidateObjectID,
+				ValidateFunc: tf.ValidateObjectID,
 				ForceNew:     true,
 			},
 			"service_id": {
 				Description:  "Service id.",
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: tfutils.ValidateObjectID,
+				ValidateFunc: tf.ValidateObjectID,
 				ForceNew:     true,
 			},
 			"rules": {
@@ -113,7 +113,7 @@ func resourceSuppressionRulesImport(ctx context.Context, d *schema.ResourceData,
 func Decode(input any, output any) error {
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		Result:               output,
-		TagName:              tfutils.EncoderStructTag,
+		TagName:              tf.EncoderStructTag,
 		ZeroFields:           true,
 		IgnoreUntaggedFields: true,
 	})
@@ -138,7 +138,7 @@ func resourceSuppressionRulesCreate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 
-	tflog.Info(ctx, "Creating suppression_rules", map[string]interface{}{
+	tflog.Info(ctx, "Creating suppression_rules", tf.M{
 		"team_id":    d.Get("team_id").(string),
 		"service_id": d.Get("service_id").(string),
 	})
@@ -166,7 +166,7 @@ func resourceSuppressionRulesRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.Errorf("invalid service id provided")
 	}
 
-	tflog.Info(ctx, "Reading suppression_rules", map[string]interface{}{
+	tflog.Info(ctx, "Reading suppression_rules", tf.M{
 		"id":         d.Id(),
 		"team_id":    d.Get("team_id").(string),
 		"service_id": d.Get("service_id").(string),
@@ -176,7 +176,7 @@ func resourceSuppressionRulesRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 
-	if err = tfutils.EncodeAndSet(suppressionRules, d); err != nil {
+	if err = tf.EncodeAndSet(suppressionRules, d); err != nil {
 		return diag.FromErr(err)
 	}
 

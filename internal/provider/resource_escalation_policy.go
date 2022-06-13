@@ -1,0 +1,352 @@
+package provider
+
+import (
+	"context"
+
+	"github.com/davecgh/go-spew/spew"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
+)
+
+func resourceEscalationPolicy() *schema.Resource {
+	return &schema.Resource{
+		Description: "EscalationPolicy resource.",
+
+		CreateContext: resourceEscalationPolicyCreate,
+		ReadContext:   resourceEscalationPolicyRead,
+		UpdateContext: resourceEscalationPolicyUpdate,
+		DeleteContext: resourceEscalationPolicyDelete,
+		Importer: &schema.ResourceImporter{
+			StateContext: resourceEscalationPolicyImport,
+		},
+
+		Schema: map[string]*schema.Schema{
+			"id": {
+				Description: "EscalationPolicy id.",
+				Type:        schema.TypeString,
+				Computed:    true,
+			},
+			"name": {
+				Description:  "EscalationPolicy name.",
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringLenBetween(1, 1000),
+			},
+			"description": {
+				Description:  "EscalationPolicy description.",
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringLenBetween(1, 1000),
+			},
+			"team_id": {
+				Description:  "Team id.",
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: tf.ValidateObjectID,
+				ForceNew:     true,
+			},
+			"repeat": {
+				Description: "repeat this policy",
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"times": {
+							Description: "repeat times",
+							Type:        schema.TypeInt,
+							Required:    true,
+						},
+						"delay_minutes": {
+							Description: "repeat after minutes",
+							Type:        schema.TypeInt,
+							Required:    true,
+						},
+					},
+				},
+			},
+			"rules": {
+				Description: "rules.",
+				Type:        schema.TypeList,
+				Required:    true,
+				MinItems:    1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"delay_minutes": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+						"targets": {
+							Type:     schema.TypeList,
+							Required: true,
+							MinItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"id": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: tf.ValidateObjectID,
+									},
+									"type": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice([]string{"user", "squad", "schedule"}, false),
+									},
+								},
+							},
+						},
+						"notification_rules": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MinItems: 1,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"type": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice([]string{"personal", "custom"}, false),
+									},
+									"channels": {
+										Type:     schema.TypeList,
+										Required: true,
+										MinItems: 1,
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{"SMS", "Phone", "Email", "Push"}, false),
+										},
+									},
+								},
+							},
+						},
+						"round_robin": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MinItems: 1,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Description: "enable rotation within",
+										Type:        schema.TypeBool,
+										Required:    true,
+									},
+									"rotation": {
+										Type:     schema.TypeList,
+										Optional: true,
+										MinItems: 1,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"enabled": {
+													Description: "enable rotation within",
+													Type:        schema.TypeBool,
+													Optional:    true,
+												},
+												"delay_minutes": {
+													Description: "repeat after minutes",
+													Type:        schema.TypeInt,
+													Optional:    true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						"repeat": {
+							Description: "repeat this rule",
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"times": {
+										Description: "repeat times",
+										Type:        schema.TypeInt,
+										Required:    true,
+									},
+									"delay_minutes": {
+										Description: "repeat after minutes",
+										Type:        schema.TypeInt,
+										Required:    true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func resourceEscalationPolicyImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+	client := meta.(*api.Client)
+
+	teamID, name, err := parse2PartImportID(d.Id())
+	if err != nil {
+		return nil, err
+	}
+
+	escalationPolicy, err := client.GetEscalationPolicyByName(ctx, teamID, name)
+	if err != nil {
+		return nil, err
+	}
+
+	d.Set("team_id", teamID)
+	d.SetId(escalationPolicy.ID)
+
+	return []*schema.ResourceData{d}, nil
+}
+
+func decodeEscalationPolicyRules(mrules []tf.M) []api.EscalationPolicyRule {
+	rules := make([]api.EscalationPolicyRule, 0)
+
+	for _, mrule := range mrules {
+		rule := api.EscalationPolicyRule{
+			EscalateAfterMinutes: mrule["delay_minutes"].(int),
+		}
+
+		mrepeats := tf.ListToSlice[tf.M](mrule["repeat"])
+		if len(mrepeats) == 1 {
+			rule.RepeatTimes = mrepeats[0]["times"].(int)
+			rule.RepeatAfterMinutes = mrepeats[0]["delay_minutes"].(int)
+		}
+
+		mrr := tf.ListToSlice[tf.M](mrule["round_robin"])
+		if len(mrr) == 1 {
+			rule.RoundrobinEnabled = mrr[0]["enabled"].(bool)
+
+			mrrrotation := tf.ListToSlice[tf.M](mrr[0]["rotation"])
+			if len(mrrrotation) == 1 {
+				rule.EscalateWithinRoundrobin = mrrrotation[0]["enabled"].(bool)
+				rule.RepeatAfterMinutes = mrrrotation[0]["delay_minutes"].(int)
+			}
+		}
+
+		mtargets := tf.ListToSlice[tf.M](mrule["targets"])
+		targets := make([]*api.EscalationPolicyTarget, 0)
+		for _, mtarget := range mtargets {
+			target := api.EscalationPolicyTarget{
+				ID:   mtarget["id"].(string),
+				Type: mtarget["type"].(string),
+			}
+			targets = append(targets, &target)
+		}
+		rule.Targets = targets
+
+		mnotificationrules := tf.ListToSlice[tf.M](mrule["notification_rules"])
+		if len(mnotificationrules) == 1 {
+			via := mnotificationrules[0]["channels"].([]string)
+			rule.Via = via
+		} else {
+			rule.Via = []string{}
+		}
+
+		rules = append(rules, rule)
+	}
+
+	return rules
+}
+
+func decodeEscalationPolicy(d *schema.ResourceData) (*api.CreateUpdateEscalationPolicyReq, error) {
+	rules := decodeEscalationPolicyRules(tf.ListToSlice[tf.M](d.Get("rules")))
+
+	req := &api.CreateUpdateEscalationPolicyReq{
+		TeamID:             d.Get("team_id").(string),
+		Name:               d.Get("name").(string),
+		Description:        d.Get("description").(string),
+		RepeatTimes:        d.Get("repeat.0.times").(int),
+		RepeatAfterMinutes: d.Get("repeat.0.delay_minutes").(int),
+		Rules:              rules,
+		IsUsingNewFields:   true,
+	}
+
+	return req, nil
+}
+
+func resourceEscalationPolicyCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	client := meta.(*api.Client)
+
+	tflog.Info(ctx, "Creating escalation_policy", tf.M{
+		"name": d.Get("name").(string),
+	})
+
+	req, err := decodeEscalationPolicy(d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	spew.Dump(req)
+
+	escalationPolicy, err := client.CreateEscalationPolicy(ctx, req)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	d.SetId(escalationPolicy.ID)
+
+	return resourceEscalationPolicyRead(ctx, d, meta)
+}
+
+func resourceEscalationPolicyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	client := meta.(*api.Client)
+
+	id := d.Id()
+
+	teamID, ok := d.GetOk("team_id")
+	if !ok {
+		return diag.Errorf("invalid team id provided")
+	}
+
+	tflog.Info(ctx, "Reading escalation_policy", tf.M{
+		"id":   d.Id(),
+		"name": d.Get("name").(string),
+	})
+	escalationPolicy, err := client.GetEscalationPolicyById(ctx, teamID.(string), id)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	if err = tf.EncodeAndSet(escalationPolicy, d); err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
+}
+
+func resourceEscalationPolicyUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	client := meta.(*api.Client)
+
+	req, err := decodeEscalationPolicy(d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	_, err = client.UpdateEscalationPolicy(ctx, d.Id(), req)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return resourceEscalationPolicyRead(ctx, d, meta)
+}
+
+func resourceEscalationPolicyDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	client := meta.(*api.Client)
+
+	_, err := client.DeleteEscalationPolicy(ctx, d.Id())
+	if err != nil {
+		if api.IsResourceNotFoundError(err) {
+			d.SetId("")
+			return nil
+		}
+		return diag.FromErr(err)
+	}
+
+	return nil
+}

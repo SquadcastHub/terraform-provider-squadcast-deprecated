@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 func resourceUser() *schema.Resource {
@@ -82,7 +82,7 @@ func resourceUserImport(ctx context.Context, d *schema.ResourceData, meta any) (
 func resourceUserCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)
 
-	tflog.Info(ctx, "Creating user", map[string]interface{}{})
+	tflog.Info(ctx, "Creating user", tf.M{})
 	user, err := client.CreateUser(ctx, &api.CreateUserReq{
 		FirstName: d.Get("first_name").(string),
 		LastName:  d.Get("last_name").(string),
@@ -97,7 +97,7 @@ func resourceUserCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 	if d.HasChange("abilities") {
 		_, err := client.UpdateUserAbilities(ctx, &api.UpdateUserAbilitiesReq{
 			UserID:    user.ID,
-			Abilities: tfutils.ListToSlice[string](d.Get("abilities")),
+			Abilities: tf.ListToSlice[string](d.Get("abilities")),
 		})
 		if err != nil {
 			return diag.FromErr(err)
@@ -112,7 +112,7 @@ func resourceUserRead(ctx context.Context, d *schema.ResourceData, meta any) dia
 
 	id := d.Id()
 
-	tflog.Info(ctx, "Reading user", map[string]interface{}{
+	tflog.Info(ctx, "Reading user", tf.M{
 		"id": id,
 	})
 	user, err := client.GetUserById(ctx, id)
@@ -120,7 +120,7 @@ func resourceUserRead(ctx context.Context, d *schema.ResourceData, meta any) dia
 		return diag.FromErr(err)
 	}
 
-	if err = tfutils.EncodeAndSet(user, d); err != nil {
+	if err = tf.EncodeAndSet(user, d); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -144,7 +144,7 @@ func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, meta any) d
 	if d.HasChange("abilities") {
 		_, err := client.UpdateUserAbilities(ctx, &api.UpdateUserAbilitiesReq{
 			UserID:    d.Id(),
-			Abilities: tfutils.ListToSlice[string](d.Get("abilities")),
+			Abilities: tf.ListToSlice[string](d.Get("abilities")),
 		})
 		if err != nil {
 			return diag.FromErr(err)

@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 func dataSourceTeam() *schema.Resource {
@@ -89,7 +89,7 @@ func dataSourceTeam() *schema.Resource {
 	}
 }
 
-func dataSourceTeamRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceTeamRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)
 
 	name, ok := d.GetOk("name")
@@ -102,7 +102,7 @@ func dataSourceTeamRead(ctx context.Context, d *schema.ResourceData, meta interf
 		return diag.FromErr(err)
 	}
 
-	if err = tfutils.EncodeAndSet(team, d); err != nil {
+	if err = tf.EncodeAndSet(team, d); err != nil {
 		return diag.FromErr(err)
 	}
 

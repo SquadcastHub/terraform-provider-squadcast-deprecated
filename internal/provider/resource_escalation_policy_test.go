@@ -1,0 +1,115 @@
+package provider
+
+import (
+	"context"
+	"fmt"
+	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
+)
+
+func TestAccResourceEscalationPolicy(t *testing.T) {
+	escalationPolicyName := acctest.RandomWithPrefix("escalation_policy")
+
+	resourceName := "squadcast_escalation_policy.test"
+	resource.UnitTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		CheckDestroy:      testAccCheckEscalationPolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceEscalationPolicyConfig(escalationPolicyName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "team_id", "613611c1eb22db455cfa789f"),
+					resource.TestCheckResourceAttr(resourceName, "name", escalationPolicyName),
+					resource.TestCheckResourceAttr(resourceName, "description", "It's an amazing policy"),
+					resource.TestCheckResourceAttr(resourceName, "repeat.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "repeat.0.times", "2"),
+					resource.TestCheckResourceAttr(resourceName, "repeat.0.delay_minutes", "10"),
+					resource.TestCheckResourceAttr(resourceName, "rules.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.delay_minutes", "0"),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.notification_rules.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.notification_rules.0.type", "personal"),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.targets.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.targets.0.id", "5f8891527f735f0a6646f3b7"),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.targets.0.type", "user"),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.targets.1.id", "5eb26b36ec9f070550204c85"),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.targets.1.type", "user"),
+				),
+			},
+			// {
+			// 	ResourceName:      resourceName,
+			// 	ImportState:       true,
+			// 	ImportStateVerify: true,
+			// 	ImportStateId:     "613611c1eb22db455cfa789f:" + escalationPolicyName,
+			// },
+		},
+	})
+}
+
+func testAccCheckEscalationPolicyDestroy(s *terraform.State) error {
+	client := testProvider.Meta().(*api.Client)
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "squadcast_escalation_policy" {
+			continue
+		}
+
+		_, err := client.GetEscalationPolicyById(context.Background(), rs.Primary.Attributes["team_id"], rs.Primary.ID)
+		if err == nil {
+			return fmt.Errorf("expected escalation_policy to be destroyed, %s found", rs.Primary.ID)
+		}
+
+		// FIXME: check for 404 errors, any other error is not acceptable.
+		// if !err.IsNotFoundError() {
+		// 	return err
+		// }
+	}
+
+	return nil
+}
+
+func testAccResourceEscalationPolicyConfig(escalationPolicyName string) string {
+	return fmt.Sprintf(`
+resource "squadcast_escalation_policy" "test" {
+	name = "%s"
+	description = "It's an amazing policy"
+
+	team_id = "613611c1eb22db455cfa789f"
+
+	rules {
+		delay_minutes = 0
+
+		targets {
+			id = "5f8891527f735f0a6646f3b7"
+			type = "user"
+		}
+
+		targets {
+			id = "5eb26b36ec9f070550204c85"
+			type = "user"
+		}
+	}
+
+	repeat {
+        times = 2
+        delay_minutes = 10
+    }
+}
+	`, escalationPolicyName)
+}
+
+func testAccResourceEscalationPolicyConfig_update(escalationPolicyName string) string {
+	return fmt.Sprintf(`
+resource "squadcast_escalation_policy" "test" {
+	name = "%s"
+	team_id = "613611c1eb22db455cfa789f"
+	description = "some description here"
+	color = "#fff000"
+}
+	`, escalationPolicyName)
+}

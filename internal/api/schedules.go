@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 type Schedule struct {
@@ -17,8 +17,8 @@ type Schedule struct {
 	Owner       OwnerRef `json:"owner" tf:"-"`
 }
 
-func (s *Schedule) Encode() (map[string]interface{}, error) {
-	m, err := tfutils.Encode(s)
+func (s *Schedule) Encode() (tf.M, error) {
+	m, err := tf.Encode(s)
 	if err != nil {
 		return nil, err
 	}

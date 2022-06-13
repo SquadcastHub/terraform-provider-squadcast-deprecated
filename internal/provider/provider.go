@@ -49,6 +49,7 @@ func New(version string) func() *schema.Provider {
 				"squadcast_team_members":        resourceTeamMembers(),
 				"squadcast_user":                resourceUser(),
 				"squadcast_schedule":            resourceSchedule(),
+				"squadcast_escalation_policy":   resourceEscalationPolicy(),
 			},
 			Schema: map[string]*schema.Schema{
 				"region": {
@@ -74,8 +75,8 @@ func New(version string) func() *schema.Provider {
 	}
 }
 
-func configure(version string, p *schema.Provider) func(context.Context, *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	return func(ctx context.Context, rd *schema.ResourceData) (c interface{}, diags diag.Diagnostics) {
+func configure(version string, p *schema.Provider) func(context.Context, *schema.ResourceData) (any, diag.Diagnostics) {
+	return func(ctx context.Context, rd *schema.ResourceData) (c any, diags diag.Diagnostics) {
 		client := &api.Client{}
 		client.UserAgent = p.UserAgent("terraform-provider-squadcast", version)
 

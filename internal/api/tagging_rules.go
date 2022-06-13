@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"sort"
 
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 type TaggingRuleCondition struct {
@@ -15,8 +15,8 @@ type TaggingRuleCondition struct {
 	RHS string `json:"rhs" tf:"rhs"`
 }
 
-func (c *TaggingRuleCondition) Encode() (map[string]interface{}, error) {
-	return tfutils.Encode(c)
+func (c *TaggingRuleCondition) Encode() (tf.M, error) {
+	return tf.Encode(c)
 }
 
 type TaggingRuleTagValue struct {
@@ -24,8 +24,8 @@ type TaggingRuleTagValue struct {
 	Color string `json:"color" tf:"color"`
 }
 
-func (tv *TaggingRuleTagValue) Encode() (map[string]interface{}, error) {
-	return tfutils.Encode(tv)
+func (tv *TaggingRuleTagValue) Encode() (tf.M, error) {
+	return tf.Encode(tv)
 }
 
 type TaggingRule struct {
@@ -35,19 +35,19 @@ type TaggingRule struct {
 	Tags            map[string]TaggingRuleTagValue `json:"tags" tf:"-"`
 }
 
-func (r *TaggingRule) Encode() (map[string]interface{}, error) {
-	m, err := tfutils.Encode(r)
+func (r *TaggingRule) Encode() (tf.M, error) {
+	m, err := tf.Encode(r)
 	if err != nil {
 		return nil, err
 	}
 
-	basicExpression, err := tfutils.EncodeSlice(r.BasicExpression)
+	basicExpression, err := tf.EncodeSlice(r.BasicExpression)
 	if err != nil {
 		return nil, err
 	}
 	m["basic_expressions"] = basicExpression
 
-	tags := make([]interface{}, 0, len(r.Tags))
+	tags := make([]any, 0, len(r.Tags))
 
 	keys := make([]string, 0, len(r.Tags))
 	for k := range r.Tags {
@@ -75,13 +75,13 @@ type TaggingRules struct {
 	Rules     []*TaggingRule `json:"rules" tf:"-"`
 }
 
-func (s *TaggingRules) Encode() (map[string]interface{}, error) {
-	m, err := tfutils.Encode(s)
+func (s *TaggingRules) Encode() (tf.M, error) {
+	m, err := tf.Encode(s)
 	if err != nil {
 		return nil, err
 	}
 
-	rules, err := tfutils.EncodeSlice(s.Rules)
+	rules, err := tf.EncodeSlice(s.Rules)
 	if err != nil {
 		return nil, err
 	}

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 type Contact struct {
@@ -26,8 +26,8 @@ type PersonalNotificationRule struct {
 	DelayMinutes int    `json:"time" tf:"delay_minutes"`
 }
 
-func (r *PersonalNotificationRule) Encode() (map[string]interface{}, error) {
-	return tfutils.Encode(r)
+func (r *PersonalNotificationRule) Encode() (tf.M, error) {
+	return tf.Encode(r)
 }
 
 type OncallReminderRule struct {
@@ -35,8 +35,8 @@ type OncallReminderRule struct {
 	DelayMinutes int    `json:"time" tf:"delay_minutes"`
 }
 
-func (r *OncallReminderRule) Encode() (map[string]interface{}, error) {
-	return tfutils.Encode(r)
+func (r *OncallReminderRule) Encode() (tf.M, error) {
+	return tf.Encode(r)
 }
 
 type DataSourceUser struct {
@@ -62,7 +62,7 @@ type DataSourceUser struct {
 	Title                     string                      `json:"title" tf:"-"`
 }
 
-func (u *DataSourceUser) Encode() (map[string]interface{}, error) {
+func (u *DataSourceUser) Encode() (tf.M, error) {
 	u.Name = u.FirstName + " " + u.LastName
 
 	if u.Contact.DialCode != "" && u.Contact.PhoneNumber != "" {
@@ -73,18 +73,18 @@ func (u *DataSourceUser) Encode() (map[string]interface{}, error) {
 		u.AbilitiesSlugs = append(u.AbilitiesSlugs, v.Slug)
 	}
 
-	m, err := tfutils.Encode(u)
+	m, err := tf.Encode(u)
 	if err != nil {
 		return nil, err
 	}
 
-	rules, err := tfutils.EncodeSlice(u.OncallReminderRules)
+	rules, err := tf.EncodeSlice(u.OncallReminderRules)
 	if err != nil {
 		return nil, err
 	}
 	m["oncall_reminder_rules"] = rules
 
-	rules, err = tfutils.EncodeSlice(u.PersonalNotificationRules)
+	rules, err = tf.EncodeSlice(u.PersonalNotificationRules)
 	if err != nil {
 		return nil, err
 	}
@@ -104,12 +104,12 @@ type ResourceUser struct {
 	AbilitiesSlugs []string   `json:"-" tf:"abilities"`
 }
 
-func (u *ResourceUser) Encode() (map[string]interface{}, error) {
+func (u *ResourceUser) Encode() (tf.M, error) {
 	for _, v := range u.Abilities {
 		u.AbilitiesSlugs = append(u.AbilitiesSlugs, v.Slug)
 	}
 
-	m, err := tfutils.Encode(u)
+	m, err := tf.Encode(u)
 	if err != nil {
 		return nil, err
 	}

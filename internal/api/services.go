@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 type Service struct {
@@ -24,10 +24,10 @@ type Service struct {
 	AlertSources       map[string]string `json:"-" tf:"alert_source_endpoints"`
 }
 
-func (s *Service) Encode() (map[string]interface{}, error) {
+func (s *Service) Encode() (tf.M, error) {
 	s.EmailPrefix = strings.Split(s.Email, "@")[0]
 
-	m, err := tfutils.Encode(s)
+	m, err := tf.Encode(s)
 	if err != nil {
 		return nil, err
 	}

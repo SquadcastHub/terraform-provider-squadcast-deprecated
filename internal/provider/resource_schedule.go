@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 func resourceSchedule() *schema.Resource {
@@ -45,7 +45,7 @@ func resourceSchedule() *schema.Resource {
 				Description:  "Team id.",
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: tfutils.ValidateObjectID,
+				ValidateFunc: tf.ValidateObjectID,
 				ForceNew:     true,
 			},
 			"color": {
@@ -79,7 +79,7 @@ func resourceScheduleImport(ctx context.Context, d *schema.ResourceData, meta an
 func resourceScheduleCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)
 
-	tflog.Info(ctx, "Creating schedule", map[string]interface{}{
+	tflog.Info(ctx, "Creating schedule", tf.M{
 		"name": d.Get("name").(string),
 	})
 	schedule, err := client.CreateSchedule(ctx, &api.CreateUpdateScheduleReq{
@@ -107,7 +107,7 @@ func resourceScheduleRead(ctx context.Context, d *schema.ResourceData, meta any)
 		return diag.Errorf("invalid team id provided")
 	}
 
-	tflog.Info(ctx, "Reading schedule", map[string]interface{}{
+	tflog.Info(ctx, "Reading schedule", tf.M{
 		"id":   d.Id(),
 		"name": d.Get("name").(string),
 	})
@@ -116,7 +116,7 @@ func resourceScheduleRead(ctx context.Context, d *schema.ResourceData, meta any)
 		return diag.FromErr(err)
 	}
 
-	if err = tfutils.EncodeAndSet(schedule, d); err != nil {
+	if err = tf.EncodeAndSet(schedule, d); err != nil {
 		return diag.FromErr(err)
 	}
 

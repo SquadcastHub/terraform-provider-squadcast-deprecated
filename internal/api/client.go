@@ -8,6 +8,8 @@ import (
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 type Client struct {
@@ -26,16 +28,16 @@ type Client struct {
 }
 
 type ErrorDetails struct {
-	Code        string      `json:"code"`
-	Description string      `json:"description,omitempty"`
-	Link        string      `json:"link,omitempty"`
-	Errors      interface{} `json:"errors,omitempty"`
+	Code        string `json:"code"`
+	Description string `json:"description,omitempty"`
+	Link        string `json:"link,omitempty"`
+	Errors      any    `json:"errors,omitempty"`
 }
 
 type AppError struct {
 	Status       int           `json:"status"`
 	Message      string        `json:"error_message,omitempty"`
-	ConflictData *interface{}  `json:"conflict_data,omitempty"`
+	ConflictData *any          `json:"conflict_data,omitempty"`
 	ErrorDetails *ErrorDetails `json:"error_details,omitempty"`
 }
 
@@ -52,7 +54,7 @@ type Meta struct {
 	Meta AppError `json:"meta,omitempty"`
 }
 
-func Request[TReq interface{}, TRes interface{}](method string, url string, client *Client, ctx context.Context, payload *TReq) (*TRes, error) {
+func Request[TReq any, TRes any](method string, url string, client *Client, ctx context.Context, payload *TReq) (*TRes, error) {
 	var req *http.Request
 	var err error
 
@@ -65,6 +67,7 @@ func Request[TReq interface{}, TRes interface{}](method string, url string, clie
 			if err != nil {
 				return nil, err
 			}
+			spew.Dump(body)
 			buf = bytes.NewBuffer(body)
 		}
 		req, err = http.NewRequestWithContext(ctx, method, url, buf)
@@ -117,7 +120,7 @@ func Request[TReq interface{}, TRes interface{}](method string, url string, clie
 	return response.Data, nil
 }
 
-func RequestSlice[TReq interface{}, TRes interface{}](method string, url string, client *Client, ctx context.Context, payload *TReq) ([]*TRes, error) {
+func RequestSlice[TReq any, TRes any](method string, url string, client *Client, ctx context.Context, payload *TReq) ([]*TRes, error) {
 	data, err := Request[TReq, []*TRes](method, url, client, ctx, payload)
 	if err != nil {
 		return nil, err

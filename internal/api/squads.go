@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 type OwnerRef struct {
@@ -22,8 +22,8 @@ type Squad struct {
 	MemberIDs []string `json:"members" tf:"member_ids"`
 }
 
-func (s *Squad) Encode() (map[string]interface{}, error) {
-	m, err := tfutils.Encode(s)
+func (s *Squad) Encode() (tf.M, error) {
+	m, err := tf.Encode(s)
 	if err != nil {
 		return nil, err
 	}

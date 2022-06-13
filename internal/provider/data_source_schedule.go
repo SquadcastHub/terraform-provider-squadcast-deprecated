@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 func dataSourceSchedule() *schema.Resource {
@@ -36,7 +36,7 @@ func dataSourceSchedule() *schema.Resource {
 				Description:  "Team id.",
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: tfutils.ValidateObjectID,
+				ValidateFunc: tf.ValidateObjectID,
 				ForceNew:     true,
 			},
 			"color": {
@@ -61,7 +61,7 @@ func dataSourceScheduleRead(ctx context.Context, d *schema.ResourceData, meta an
 		return diag.Errorf("invalid team id provided")
 	}
 
-	tflog.Info(ctx, "Reading schedule by name", map[string]interface{}{
+	tflog.Info(ctx, "Reading schedule by name", tf.M{
 		"name": name.(string),
 	})
 	schedule, err := client.GetScheduleByName(ctx, teamID.(string), name.(string))
@@ -69,7 +69,7 @@ func dataSourceScheduleRead(ctx context.Context, d *schema.ResourceData, meta an
 		return diag.FromErr(err)
 	}
 
-	if err = tfutils.EncodeAndSet(schedule, d); err != nil {
+	if err = tf.EncodeAndSet(schedule, d); err != nil {
 		return diag.FromErr(err)
 	}
 

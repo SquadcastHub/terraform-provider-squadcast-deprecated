@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 func resourceTeamRole() *schema.Resource {
@@ -33,7 +33,7 @@ func resourceTeamRole() *schema.Resource {
 				Description:  "Team id.",
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: tfutils.ValidateObjectID,
+				ValidateFunc: tf.ValidateObjectID,
 				ForceNew:     true,
 			},
 			"name": {
@@ -81,12 +81,12 @@ func resourceTeamRoleImport(ctx context.Context, d *schema.ResourceData, meta an
 func resourceTeamRoleCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)
 
-	tflog.Info(ctx, "Creating team_role", map[string]interface{}{
+	tflog.Info(ctx, "Creating team_role", tf.M{
 		"name": d.Get("name").(string),
 	})
 	teamRole, err := client.CreateTeamRole(ctx, d.Get("team_id").(string), &api.CreateTeamRoleReq{
 		Name:      d.Get("name").(string),
-		Abilities: tfutils.ListToSlice[string](d.Get("abilities")),
+		Abilities: tf.ListToSlice[string](d.Get("abilities")),
 	})
 	if err != nil {
 		return diag.FromErr(err)
@@ -107,7 +107,7 @@ func resourceTeamRoleRead(ctx context.Context, d *schema.ResourceData, meta any)
 		return diag.Errorf("invalid team id provided")
 	}
 
-	tflog.Info(ctx, "Reading team_role", map[string]interface{}{
+	tflog.Info(ctx, "Reading team_role", tf.M{
 		"id":   d.Id(),
 		"name": d.Get("name").(string),
 	})
@@ -116,7 +116,7 @@ func resourceTeamRoleRead(ctx context.Context, d *schema.ResourceData, meta any)
 		return diag.FromErr(err)
 	}
 
-	if err = tfutils.EncodeAndSet(teamRole, d); err != nil {
+	if err = tf.EncodeAndSet(teamRole, d); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -128,7 +128,7 @@ func resourceTeamRoleUpdate(ctx context.Context, d *schema.ResourceData, meta an
 
 	_, err := client.UpdateTeamRole(ctx, d.Get("team_id").(string), d.Id(), &api.UpdateTeamRoleReq{
 		Name:      d.Get("name").(string),
-		Abilities: tfutils.ListToSlice[string](d.Get("abilities")),
+		Abilities: tf.ListToSlice[string](d.Get("abilities")),
 	})
 	if err != nil {
 		return diag.FromErr(err)

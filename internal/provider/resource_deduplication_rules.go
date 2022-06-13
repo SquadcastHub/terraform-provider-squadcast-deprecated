@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 const deduplicationRulesID = "deduplication_rules"
@@ -34,14 +34,14 @@ func resourceDeduplicationRules() *schema.Resource {
 				Description:  "Team id.",
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: tfutils.ValidateObjectID,
+				ValidateFunc: tf.ValidateObjectID,
 				ForceNew:     true,
 			},
 			"service_id": {
 				Description:  "Service id.",
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: tfutils.ValidateObjectID,
+				ValidateFunc: tf.ValidateObjectID,
 				ForceNew:     true,
 			},
 			"rules": {
@@ -136,7 +136,7 @@ func resourceDeduplicationRulesCreate(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(err)
 	}
 
-	tflog.Info(ctx, "Creating deduplication_rules", map[string]interface{}{
+	tflog.Info(ctx, "Creating deduplication_rules", tf.M{
 		"team_id":    d.Get("team_id").(string),
 		"service_id": d.Get("service_id").(string),
 	})
@@ -164,7 +164,7 @@ func resourceDeduplicationRulesRead(ctx context.Context, d *schema.ResourceData,
 		return diag.Errorf("invalid service id provided")
 	}
 
-	tflog.Info(ctx, "Reading deduplication_rules", map[string]interface{}{
+	tflog.Info(ctx, "Reading deduplication_rules", tf.M{
 		"id":         d.Id(),
 		"team_id":    d.Get("team_id").(string),
 		"service_id": d.Get("service_id").(string),
@@ -174,7 +174,7 @@ func resourceDeduplicationRulesRead(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 
-	if err = tfutils.EncodeAndSet(deduplicationRules, d); err != nil {
+	if err = tf.EncodeAndSet(deduplicationRules, d); err != nil {
 		return diag.FromErr(err)
 	}
 
