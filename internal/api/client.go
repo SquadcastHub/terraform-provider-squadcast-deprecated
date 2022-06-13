@@ -8,8 +8,6 @@ import (
 	"io"
 	"net/http"
 	"strings"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 type Client struct {
@@ -67,7 +65,6 @@ func Request[TReq any, TRes any](method string, url string, client *Client, ctx 
 			if err != nil {
 				return nil, err
 			}
-			spew.Dump(body)
 			buf = bytes.NewBuffer(body)
 		}
 		req, err = http.NewRequestWithContext(ctx, method, url, buf)
