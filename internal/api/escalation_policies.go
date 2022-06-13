@@ -36,17 +36,9 @@ func (r *EscalationPolicyRule) Encode() (tf.M, error) {
 	}
 
 	if len(r.Via) == 0 {
-		// personal notification rules
-		m["notification_rules"] = tf.List(tf.M{
-			"type":     "personal",
-			"channels": []string{},
-		})
+		m["notification_channels"] = []string{}
 	} else {
-		// custom notification rules
-		m["notification_rules"] = tf.List(tf.M{
-			"type":     "custom",
-			"channels": r.Via,
-		})
+		m["notification_channels"] = r.Via
 	}
 
 	if !r.RoundrobinEnabled || !r.EscalateWithinRoundrobin {

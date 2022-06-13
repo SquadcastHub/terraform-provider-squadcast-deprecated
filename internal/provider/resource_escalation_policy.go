@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -99,28 +100,12 @@ func resourceEscalationPolicy() *schema.Resource {
 								},
 							},
 						},
-						"notification_rules": {
+						"notification_channels": {
 							Type:     schema.TypeList,
 							Optional: true,
-							MinItems: 1,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"type": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringInSlice([]string{"personal", "custom"}, false),
-									},
-									"channels": {
-										Type:     schema.TypeList,
-										Required: true,
-										MinItems: 1,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{"SMS", "Phone", "Email", "Push"}, false),
-										},
-									},
-								},
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{"SMS", "Phone", "Email", "Push"}, false),
 							},
 						},
 						"round_robin": {
@@ -204,10 +189,10 @@ func resourceEscalationPolicyImport(ctx context.Context, d *schema.ResourceData,
 	return []*schema.ResourceData{d}, nil
 }
 
-func decodeEscalationPolicyRules(mrules []tf.M) []api.EscalationPolicyRule {
+func decodeEscalationPolicyRules(mrules []tf.M) ([]api.EscalationPolicyRule, error) {
 	rules := make([]api.EscalationPolicyRule, 0)
 
-	for _, mrule := range mrules {
+	for i, mrule := range mrules {
 		rule := api.EscalationPolicyRule{
 			EscalateAfterMinutes: mrule["delay_minutes"].(int),
 		}
@@ -229,6 +214,10 @@ func decodeEscalationPolicyRules(mrules []tf.M) []api.EscalationPolicyRule {
 			}
 		}
 
+		if len(mrepeats) == 1 && rule.RoundrobinEnabled {
+			return nil, fmt.Errorf("rule %d cannot have both round robin and a repetition, please remove one", i)
+		}
+
 		mtargets := tf.ListToSlice[tf.M](mrule["targets"])
 		targets := make([]*api.EscalationPolicyTarget, 0)
 		for _, mtarget := range mtargets {
@@ -240,22 +229,19 @@ func decodeEscalationPolicyRules(mrules []tf.M) []api.EscalationPolicyRule {
 		}
 		rule.Targets = targets
 
-		mnotificationrules := tf.ListToSlice[tf.M](mrule["notification_rules"])
-		if len(mnotificationrules) == 1 {
-			via := mnotificationrules[0]["channels"].([]string)
-			rule.Via = via
-		} else {
-			rule.Via = []string{}
-		}
+		rule.Via = tf.ListToSlice[string](mrule["notification_channels"])
 
 		rules = append(rules, rule)
 	}
 
-	return rules
+	return rules, nil
 }
 
 func decodeEscalationPolicy(d *schema.ResourceData) (*api.CreateUpdateEscalationPolicyReq, error) {
-	rules := decodeEscalationPolicyRules(tf.ListToSlice[tf.M](d.Get("rules")))
+	rules, err := decodeEscalationPolicyRules(tf.ListToSlice[tf.M](d.Get("rules")))
+	if err != nil {
+		return nil, fmt.Errorf("escalation policy `%s` is invalid: %s", d.Get("name").(string), err.Error())
+	}
 
 	req := &api.CreateUpdateEscalationPolicyReq{
 		TeamID:             d.Get("team_id").(string),
