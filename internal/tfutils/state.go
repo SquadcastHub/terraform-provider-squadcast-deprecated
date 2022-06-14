@@ -9,10 +9,14 @@ import (
 func SetState(d *schema.ResourceData, m map[string]interface{}) error {
 	id, ok := m["id"].(string)
 	if !ok {
-		return fmt.Errorf("invalid id")
+		sloID, ok := m["id"].(uint)
+		if !ok {
+			return fmt.Errorf("invalid id")
+		}
+		d.SetId(fmt.Sprint(sloID))
+	} else {
+		d.SetId(id)
 	}
-
-	d.SetId(id)
 
 	for k, v := range m {
 		if k == "id" {

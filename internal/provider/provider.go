@@ -49,6 +49,7 @@ func New(version string) func() *schema.Provider {
 				"squadcast_team_role":           resourceTeamRole(),
 				"squadcast_team_members":        resourceTeamMembers(),
 				"squadcast_user":                resourceUser(),
+				"squadcast_slo":                 resourceSlo(),
 			},
 			Schema: map[string]*schema.Schema{
 				"organization_id": {
