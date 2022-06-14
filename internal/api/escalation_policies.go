@@ -116,18 +116,18 @@ func (client *Client) GetEscalationPolicyById(ctx context.Context, teamID string
 }
 
 func (client *Client) GetEscalationPolicyByName(ctx context.Context, teamID string, name string) (*EscalationPolicy, error) {
-	escalation_policies, err := client.ListEscalationPolicies(ctx, teamID)
+	escalationPolicies, err := client.ListEscalationPolicies(ctx, teamID)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, s := range escalation_policies {
+	for _, s := range escalationPolicies {
 		if s.Name == name {
 			return s, nil
 		}
 	}
 
-	return nil, fmt.Errorf("could not find a escalation_policy with name `%s`", name)
+	return nil, fmt.Errorf("could not find an escalation policy with name `%s`", name)
 }
 
 func (client *Client) ListEscalationPolicies(ctx context.Context, teamID string) ([]*EscalationPolicy, error) {

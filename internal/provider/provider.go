@@ -50,6 +50,7 @@ func New(version string) func() *schema.Provider {
 				"squadcast_user":                resourceUser(),
 				"squadcast_schedule":            resourceSchedule(),
 				"squadcast_escalation_policy":   resourceEscalationPolicy(),
+				"squadcast_runbook":             resourceRunbook(),
 			},
 			Schema: map[string]*schema.Schema{
 				"region": {
