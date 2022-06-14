@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -73,10 +72,7 @@ func resourceSlo() *schema.Resource {
 					Type: schema.TypeString,
 				},
 				Required: true,
-				// ValidateFunc: tfutils.ValidateObjectID, //TODO: Check this out
-
 			},
-			// tags
 			"slis": {
 				Description: "Slis.",
 				Type:        schema.TypeList,
@@ -97,50 +93,18 @@ func resourceSlo() *schema.Resource {
 				Optional:    true,
 				Computed:    true,
 			},
-			// TODO: add validation
 			"start_time": {
 				Description: "Start time.",
 				Type:        schema.TypeString,
 				Computed:    true,
 				Optional:    true,
 			},
-			// TODO: add validation
 			"end_time": {
 				Description: "End time.",
 				Type:        schema.TypeString,
 				Computed:    true,
 				Optional:    true,
 			},
-			// "type": {
-			// 	Type:     schema.TypeList,
-			// 	Required: true,
-			// 	Elem: &schema.Resource{
-			// 		Schema: map[string]*schema.Schema{
-			// 			"interval": {
-			// 				Description: "Interval.",
-			// 				// TODO: Add validation for one of the values("rolling", "fixed")
-			// 				Type:     schema.TypeString,
-			// 				Required: true,
-			// 			},
-			// 			"duration_in_days": {
-			// 				Description: "Duration in days.",
-			// 				Type:        schema.TypeInt,
-			// 				Optional:    true,
-			// 			},
-			// 			"start_time": {
-			// 				Description: "Start time.",
-			// 				Type:        schema.TypeString,
-			// 				Optional:    true,
-			// 			},
-			// 			"end_time": {
-			// 				Description: "End time.",
-			// 				Type:        schema.TypeString,
-			// 				Optional:    true,
-			// 			},
-			// 		},
-			// 	},
-			// },
-
 			"rules": {
 				Description: "Slo monitoring checks.",
 				Type:        schema.TypeList,
@@ -148,16 +112,14 @@ func resourceSlo() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Description: "id.",
-							// TODO: Add validation for one of the values("rolling", "fixed")
-							Type:     schema.TypeInt,
-							Computed: true,
+							Type:        schema.TypeInt,
+							Computed:    true,
 						},
-						// "slo_id": {
-						// 	Description: "Slo id.",
-						// 	Type:        schema.TypeInt,
-						// 	Required:    true,
-						// },
-						// TODO: Change this to condition later
+						"slo_id": {
+							Description: "Slo id.",
+							Type:        schema.TypeInt,
+							Computed:    true,
+						},
 						"name": {
 							Description: "Name of monitoring check.",
 							Type:        schema.TypeString,
@@ -182,7 +144,7 @@ func resourceSlo() *schema.Resource {
 						"owner_id": {
 							Description: "Team id.",
 							Type:        schema.TypeString,
-							Optional:    true,
+							Computed:    true,
 						},
 					},
 				},
@@ -214,39 +176,9 @@ func resourceSlo() *schema.Resource {
 // 	return []*schema.ResourceData{d}, nil
 // }
 
-// func resourceServiceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-// 	client := meta.(*api.Client)
-
-// 	tflog.Info(ctx, "Creating service", map[string]interface{}{
-// 		"name": d.Get("name").(string),
-// 	})
-// 	service, err := client.CreateService(ctx, &api.CreateServiceReq{
-// 		Name:               d.Get("name").(string),
-// 		TeamID:             d.Get("team_id").(string),
-// 		Description:        d.Get("description").(string),
-// 		EscalationPolicyID: d.Get("escalation_policy_id").(string),
-// 		EmailPrefix:        d.Get("email_prefix").(string),
-// 	})
-// 	if err != nil {
-// 		return diag.FromErr(err)
-// 	}
-
-// 	d.SetId(service.ID)
-
-// 	_, err = client.UpdateServiceDependencies(ctx, service.ID, &api.UpdateServiceDependenciesReq{
-// 		Data: tfutils.ListToSlice[string](d.Get("dependencies")),
-// 	})
-// 	if err != nil {
-// 		return diag.FromErr(err)
-// 	}
-
-// 	return resourceServiceRead(ctx, d, meta)
-// }
-
 func resourceSloCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)
-
-	var alerts []*api.SloMonitoringCheck
+	alerts := make([]*api.SloMonitoringCheck, 0)
 	err := Decode(d.Get("rules"), &alerts)
 	if err != nil {
 		return diag.FromErr(err)
@@ -278,8 +210,8 @@ func resourceSloCreate(ctx context.Context, d *schema.ResourceData, meta any) di
 		Name:                d.Get("name").(string),
 		Description:         d.Get("description").(string),
 		TargetSlo:           d.Get("target_slo").(float64),
-		ServiceIDs:          tfutils.ListToSlice[string](d.Get("service_ids")), //d.Get("service_ids").([]string),
-		Slis:                tfutils.ListToSlice[string](d.Get("slis")),        //d.Get("slis").([]string),
+		ServiceIDs:          tfutils.ListToSlice[string](d.Get("service_ids")),
+		Slis:                tfutils.ListToSlice[string](d.Get("slis")),
 		TimeIntervalType:    d.Get("time_interval_type").(string),
 		DurationInDays:      d.Get("duration_in_days").(int),
 		StartTime:           d.Get("start_time").(string),
@@ -295,8 +227,6 @@ func resourceSloCreate(ctx context.Context, d *schema.ResourceData, meta any) di
 
 	idStr := strconv.FormatUint(uint64(slo.ID), 10)
 	d.SetId(idStr)
-	fmt.Println("SloCreate#################################", idStr)
-
 	return resourceSloRead(ctx, d, meta)
 }
 
@@ -334,9 +264,6 @@ func resourceSloRead(ctx context.Context, d *schema.ResourceData, meta any) diag
 		case "remaining_err_budget_threshold":
 			alert.Name = "remaining_error_budget"
 		}
-		// alert.OwnerType = "team"
-		// alert.OwnerID = d.Get("owner_id").(string)
-		// alert.IsChecked = true
 	}
 
 	if err = tfutils.EncodeAndSet(slo, d); err != nil {
@@ -369,9 +296,10 @@ func resourceSloUpdate(ctx context.Context, d *schema.ResourceData, meta any) di
 		alert.OwnerType = "team"
 		alert.OwnerID = d.Get("owner_id").(string)
 		alert.IsChecked = true
+		alert.SloID, _ = strconv.ParseInt(d.Id(), 10, 32)
 	}
 
-	tflog.Info(ctx, "Creating Slos", map[string]interface{}{
+	tflog.Info(ctx, "Updating Slos", map[string]interface{}{
 		"name": d.Get("name").(string),
 	})
 
@@ -386,8 +314,8 @@ func resourceSloUpdate(ctx context.Context, d *schema.ResourceData, meta any) di
 		Name:                d.Get("name").(string),
 		Description:         d.Get("description").(string),
 		TargetSlo:           d.Get("target_slo").(float64),
-		ServiceIDs:          tfutils.ListToSlice[string](d.Get("service_ids")), //d.Get("service_ids").([]string),
-		Slis:                tfutils.ListToSlice[string](d.Get("slis")),        //d.Get("slis").([]string),
+		ServiceIDs:          tfutils.ListToSlice[string](d.Get("service_ids")),
+		Slis:                tfutils.ListToSlice[string](d.Get("slis")),
 		TimeIntervalType:    d.Get("time_interval_type").(string),
 		DurationInDays:      d.Get("duration_in_days").(int),
 		StartTime:           d.Get("start_time").(string),
@@ -418,8 +346,3 @@ func resourceSloDelete(ctx context.Context, d *schema.ResourceData, meta any) di
 
 	return nil
 }
-
-// func setBoolean(b bool) *bool {
-// 	boolVar := b
-// 	return &boolVar
-// }

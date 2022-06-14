@@ -23,23 +23,19 @@ func TestAccResourceSlo(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "owner_id", "611262fcd5b4ea846b534a8a"),
 					resource.TestCheckResourceAttr(resourceName, "name", sloName),
+					resource.TestCheckResourceAttr(resourceName, "duration_in_days", "30"),
 					// TODO: Add more attributes for monitoring checks and actions
 				),
 			},
-			// {
-			// 	Config: testAccResourceSloConfig_update(sloName),
-			// 	Check: resource.ComposeTestCheckFunc(
-			// 		resource.TestCheckResourceAttrSet(resourceName, "id"),
-			// 		resource.TestCheckResourceAttr(resourceName, "owner_id", "613611c1eb22db455cfa789f"),
-			// 		resource.TestCheckResourceAttr(resourceName, "name", sloName),
-			// 		resource.TestCheckResourceAttr(resourceName, "description", "some description here."),
-			// 		resource.TestCheckResourceAttr(resourceName, "escalation_policy_id", "61361415c2fc70c3101ca7db"),
-			// 		resource.TestCheckResourceAttr(resourceName, "email_prefix", "foomp2"),
-			// 		resource.TestCheckResourceAttrSet(resourceName, "api_key"),
-			// 		resource.TestCheckResourceAttr(resourceName, "email", "foomp2@squadcast.incidents.squadcast.com"),
-			// 		resource.TestCheckResourceAttr(resourceName, "dependencies.#", "0"),
-			// 	),
-			// },
+			{
+				Config: testAccResourceSloConfig_update(sloName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "owner_id", "611262fcd5b4ea846b534a8a"),
+					resource.TestCheckResourceAttr(resourceName, "name", sloName),
+					resource.TestCheckResourceAttr(resourceName, "duration_in_days", "7"),
+				),
+			},
 			// {
 			// 	ResourceName:        resourceName,
 			// 	ImportState:         true,
@@ -87,23 +83,10 @@ resource "squadcast_slo" "test" {
 
 	rules {
 		name = "breached_error_budget"
-		owner_id = "611262fcd5b4ea846b534a8a"
-	}
-	
-	rules {
-		name = "unhealthy_slo"
-		owner_id = "611262fcd5b4ea846b534a8a"
-	}
-	
-	rules {
-		name = "increased_false_positives"
-		owner_id = "611262fcd5b4ea846b534a8a"
-		threshold = 10
 	}
 	
 	rules {
 		name = "remaining_error_budget"
-		owner_id = "611262fcd5b4ea846b534a8a"
 		threshold = 10
 	}
 
@@ -113,17 +96,35 @@ resource "squadcast_slo" "test" {
 	`, sloName)
 }
 
-// start_time = "2022-03-30T19:33:22.795Z"
-// end_time = "2023-03-30T19:33:22.795Z"
+func testAccResourceSloConfig_update(sloName string) string {
+	return fmt.Sprintf(`
 
-// func testAccResourceSloConfig_update(sloName string) string {
-// 	return fmt.Sprintf(`
-// resource "squadcast_slo" "test" {
-// 	name = "%s"
-// 	description = "some description here."
-// 	owner_id = "611262fcd5b4ea846b534a8a"
-// 	escalation_policy_id = "61361415c2fc70c3101ca7db"
-// 	email_prefix = "foomp2"
-// }
-// 	`, sloName)
-// }
+resource "squadcast_slo" "test" {
+	name = "%s"
+	description = "Tracks some slo for some service"
+	target_slo = 99.9
+	service_ids = ["615d3e23aff6885f46d291be"]
+	slis = ["latency"]
+	time_interval_type = "rolling"
+	duration_in_days = 7
+	org_id = "604592dabc35ea0008bb0584"
+
+	rules {
+		name = "breached_error_budget"
+	}
+	
+	rules {
+		name = "remaining_error_budget"
+		threshold = 11
+	}
+
+	rules {
+		name = "unhealthy_slo"
+		threshold = 1
+	}
+	
+	owner_type="team"
+	owner_id = "611262fcd5b4ea846b534a8a"
+}
+	`, sloName)
+}

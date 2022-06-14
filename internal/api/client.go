@@ -103,10 +103,6 @@ func Request[TReq interface{}, TRes interface{}](method string, url string, clie
 		return nil, err
 	}
 
-	// fmt.Println("****************************************************")
-	// fmt.Println(any(*response.Data).(Data).Slo)
-	// fmt.Println("****************************************************")
-
 	if resp.StatusCode > 299 {
 		if response.Meta != nil {
 			return nil, fmt.Errorf("%s %s returned an error:\n%s", method, url, response.Meta.Meta.Error())
