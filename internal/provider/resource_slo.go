@@ -11,8 +11,6 @@ import (
 	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
 )
 
-const slo_id = "id" // Change this
-
 func resourceSlo() *schema.Resource {
 	return &schema.Resource{
 		Description: "DeduplicationRules resource.",
@@ -21,9 +19,6 @@ func resourceSlo() *schema.Resource {
 		ReadContext:   resourceSloRead,
 		UpdateContext: resourceSloUpdate,
 		DeleteContext: resourceSloDelete,
-		// Importer: &schema.ResourceImporter{
-		// 	StateContext: resourceSloImport,
-		// },
 
 		Schema: map[string]*schema.Schema{
 			"id": {
@@ -150,12 +145,54 @@ func resourceSlo() *schema.Resource {
 				},
 				Optional: true,
 			},
-			"slo_actions": {
-				Description: "Slo actions.",
+			"notify": {
+				Description: "Notify.",
 				Type:        schema.TypeList,
-				// TODO: Change this
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Description: "id.",
+							Type:        schema.TypeInt,
+							Computed:    true,
+						},
+						"slo_id": {
+							Description: "Slo id.",
+							Type:        schema.TypeInt,
+							Computed:    true,
+						},
+						"users": {
+							Description: "User ids..",
+							Type:        schema.TypeList,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+							Optional: true,
+						},
+						"squads": {
+							Description: "Squad ids..",
+							Type:        schema.TypeList,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+							Optional: true,
+						},
+						"service": {
+							Description: "Service id.",
+							Type:        schema.TypeString,
+							Optional:    true,
+						},
+						"owner_type": {
+							Description: "Owner type",
+							Type:        schema.TypeString,
+							Optional:    true,
+							Default:     "team",
+						},
+						"owner_id": {
+							Description: "Team id.",
+							Type:        schema.TypeString,
+							Computed:    true,
+						},
+					},
 				},
 				Optional: true,
 			},
@@ -163,23 +200,18 @@ func resourceSlo() *schema.Resource {
 	}
 }
 
-// func resourceSloImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-// 	teamID, serviceID, err := parse2PartImportID(d.Id())
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	d.Set("team_id", teamID)
-// 	d.Set("service_id", serviceID)
-// 	d.SetId(slo_id)
-
-// 	return []*schema.ResourceData{d}, nil
-// }
-
 func resourceSloCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)
 	alerts := make([]*api.SloMonitoringCheck, 0)
+	sloActions := make([]*api.SloAction, 0)
+	notify := make([]*api.SloNotify, 0)
+
 	err := Decode(d.Get("rules"), &alerts)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = Decode(d.Get("notify"), &notify)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -200,6 +232,36 @@ func resourceSloCreate(ctx context.Context, d *schema.ResourceData, meta any) di
 		alert.IsChecked = true
 	}
 
+	for _, userID := range notify[0].Users {
+		user := &api.SloAction{
+			Type:      "USER",
+			UserID:    userID,
+			OwnerID:   d.Get("owner_id").(string),
+			OwnerType: d.Get("owner_type").(string),
+		}
+		sloActions = append(sloActions, user)
+	}
+
+	if notify[0].Service != "" {
+		service := &api.SloAction{
+			Type:      "SERVICE",
+			UserID:    notify[0].Service,
+			OwnerID:   d.Get("owner_id").(string),
+			OwnerType: d.Get("owner_type").(string),
+		}
+		sloActions = append(sloActions, service)
+	}
+
+	for _, squadID := range notify[0].Squads {
+		user := &api.SloAction{
+			Type:      "SQUAD",
+			UserID:    squadID,
+			OwnerID:   d.Get("owner_id").(string),
+			OwnerType: d.Get("owner_type").(string),
+		}
+		sloActions = append(sloActions, user)
+	}
+
 	tflog.Info(ctx, "Creating Slos", map[string]interface{}{
 		"name": d.Get("name").(string),
 	})
@@ -217,9 +279,9 @@ func resourceSloCreate(ctx context.Context, d *schema.ResourceData, meta any) di
 		StartTime:           d.Get("start_time").(string),
 		EndTime:             d.Get("end_time").(string),
 		SloMonitoringChecks: alerts,
-		// SloActions:          d.Get("slo_actions").([]api.SloAction),
-		OwnerType: d.Get("owner_type").(string),
-		OwnerID:   d.Get("owner_id").(string),
+		SloActions:          sloActions,
+		OwnerType:           d.Get("owner_type").(string),
+		OwnerID:             d.Get("owner_id").(string),
 	})
 	if err != nil {
 		return diag.FromErr(err)
@@ -275,12 +337,21 @@ func resourceSloRead(ctx context.Context, d *schema.ResourceData, meta any) diag
 
 func resourceSloUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)
-
 	var alerts []*api.SloMonitoringCheck
+	sloActions := make([]*api.SloAction, 0)
+	notify := make([]*api.SloNotify, 0)
+
 	err := Decode(d.Get("rules"), &alerts)
 	if err != nil {
 		return diag.FromErr(err)
 	}
+
+	err = Decode(d.Get("notify"), &notify)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	sloID, _ := strconv.ParseInt(d.Id(), 10, 32)
 
 	for _, alert := range alerts {
 		switch alert.Name {
@@ -296,7 +367,40 @@ func resourceSloUpdate(ctx context.Context, d *schema.ResourceData, meta any) di
 		alert.OwnerType = "team"
 		alert.OwnerID = d.Get("owner_id").(string)
 		alert.IsChecked = true
-		alert.SloID, _ = strconv.ParseInt(d.Id(), 10, 32)
+		alert.SloID = sloID
+	}
+
+	for _, userID := range notify[0].Users {
+		user := &api.SloAction{
+			Type:      "USER",
+			UserID:    userID,
+			SloID:     sloID,
+			OwnerID:   d.Get("owner_id").(string),
+			OwnerType: d.Get("owner_type").(string),
+		}
+		sloActions = append(sloActions, user)
+	}
+
+	if notify[0].Service != "" {
+		service := &api.SloAction{
+			Type:      "SERVICE",
+			UserID:    notify[0].Service,
+			SloID:     sloID,
+			OwnerID:   d.Get("owner_id").(string),
+			OwnerType: d.Get("owner_type").(string),
+		}
+		sloActions = append(sloActions, service)
+	}
+
+	for _, squadID := range notify[0].Squads {
+		user := &api.SloAction{
+			Type:      "SQUAD",
+			UserID:    squadID,
+			SloID:     sloID,
+			OwnerID:   d.Get("owner_id").(string),
+			OwnerType: d.Get("owner_type").(string),
+		}
+		sloActions = append(sloActions, user)
 	}
 
 	tflog.Info(ctx, "Updating Slos", map[string]interface{}{
@@ -321,9 +425,9 @@ func resourceSloUpdate(ctx context.Context, d *schema.ResourceData, meta any) di
 		StartTime:           d.Get("start_time").(string),
 		EndTime:             d.Get("end_time").(string),
 		SloMonitoringChecks: alerts,
-		// SloActions:          d.Get("slo_actions").([]api.SloAction),
-		OwnerType: d.Get("owner_type").(string),
-		OwnerID:   d.Get("owner_id").(string),
+		SloActions:          sloActions,
+		OwnerType:           d.Get("owner_type").(string),
+		OwnerID:             d.Get("owner_id").(string),
 	})
 	if err != nil {
 		return diag.FromErr(err)

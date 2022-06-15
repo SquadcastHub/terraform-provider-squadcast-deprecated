@@ -90,6 +90,10 @@ resource "squadcast_slo" "test" {
 		threshold = 10
 	}
 
+	notify {
+		users = ["5e1c2309342445001180f9c2"]
+	}
+	
 	owner_type="team"
 	owner_id = "611262fcd5b4ea846b534a8a"
 }
@@ -123,6 +127,10 @@ resource "squadcast_slo" "test" {
 		threshold = 1
 	}
 	
+	notify {
+		users = ["5e1c2309342445001180f9c2", "617793e650d38001057faaaf"]
+	}
+
 	owner_type="team"
 	owner_id = "611262fcd5b4ea846b534a8a"
 }

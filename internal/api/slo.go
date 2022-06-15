@@ -25,9 +25,9 @@ type Slo struct {
 	DurationInDays   int      `json:"duration_in_days,omitempty" tf:"duration_in_days"`
 	// Tags                json.RawMessage       `json:"tags,omitempty" tf:"tags"`
 	SloMonitoringChecks []*SloMonitoringCheck `json:"slo_monitoring_checks" tf:"rules"`
-	// SloActions          []SloAction          `json:"slo_actions"`
-	OwnerType string `json:"owner_type" tf:"owner_type"`
-	OwnerID   string `json:"owner_id" tf:"owner_id"`
+	SloActions          []*SloAction          `json:"slo_actions" tf:"notify"`
+	OwnerType           string                `json:"owner_type" tf:"owner_type"`
+	OwnerID             string                `json:"owner_id" tf:"owner_id"`
 }
 
 type SloMonitoringCheck struct {
@@ -40,32 +40,78 @@ type SloMonitoringCheck struct {
 	IsChecked bool   `json:"is_checked" tf:"is_checked"`
 }
 
-// type SloAction struct {
-// 	ID        uint   `json:"id,omitempty"`
-// 	SloID     uint   `json:"slo_id,omitempty"`
-// 	Type      string `json:"type"`
-// 	UserID    string `json:"user_id"`
-// 	SquadID   string `json:"squad_id"`
-// 	ServiceID string `json:"service_id"`
-// 	OwnerType string `json:"owner_type"`
-// 	OwnerID   string `json:"owner_id"`
-// }
+type SloAction struct {
+	ID        uint   `json:"id,omitempty" tf:"id"`
+	SloID     int64  `json:"slo_id,omitempty" tf:"slo_id"`
+	Type      string `json:"type" tf:"type"`
+	UserID    string `json:"user_id" tf:"user_id"`
+	SquadID   string `json:"squad_id" tf:"squad_id"`
+	ServiceID string `json:"service_id" tf:"service_id"`
+	OwnerType string `json:"owner_type" tf:"owner_type"`
+	OwnerID   string `json:"owner_id" tf:"owner_id"`
+}
+
+type SloNotify struct {
+	ID        uint     `json:"id,omitempty" tf:"id"`
+	SloID     int64    `json:"slo_id,omitempty" tf:"slo_id"`
+	Users     []string `json:"users" tf:"users"`
+	Squads    []string `json:"squads" tf:"squads"`
+	Service   string   `json:"service" tf:"service"`
+	OwnerType string   `json:"owner_type" tf:"owner_type"`
+	OwnerID   string   `json:"owner_id" tf:"owner_id"`
+}
 
 func (c *SloMonitoringCheck) Encode() (map[string]interface{}, error) {
 	return tfutils.Encode(c)
 }
 
+func (c *SloNotify) Encode() (map[string]interface{}, error) {
+	return tfutils.Encode(c)
+}
+
+func (c *SloAction) Encode() (map[string]interface{}, error) {
+	return tfutils.Encode(c)
+}
+
 func (r *Slo) Encode() (map[string]interface{}, error) {
+	notify := make([]*SloNotify, 0)
+	notify = append(notify, &SloNotify{})
+
 	m, err := tfutils.Encode(r)
 	if err != nil {
 		return nil, err
 	}
 
-	slo_monitoring_checks, err := tfutils.EncodeSlice(r.SloMonitoringChecks)
+	sloMonitoringChecks, err := tfutils.EncodeSlice(r.SloMonitoringChecks)
 	if err != nil {
 		return nil, err
 	}
-	m["rules"] = slo_monitoring_checks
+	m["rules"] = sloMonitoringChecks
+
+	for _, n := range r.SloActions {
+		if n.UserID != "" {
+			notify[0].Users = append(notify[0].Users, n.UserID)
+		}
+		if n.SquadID != "" {
+			notify[0].Squads = append(notify[0].Squads, n.SquadID)
+		}
+		if n.ServiceID != "" {
+			notify[0].Service = n.ServiceID
+		}
+	}
+
+	if len(r.SloActions) > 0 {
+		notify[0].SloID = int64(r.ID)
+		notify[0].OwnerID = r.OwnerID
+		notify[0].OwnerType = r.OwnerType
+	}
+
+	eNotify, err := tfutils.EncodeSlice(notify)
+	if err != nil {
+		fmt.Println(err)
+
+	}
+	m["notify"] = eNotify
 
 	return m, nil
 }
