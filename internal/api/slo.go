@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -13,17 +14,16 @@ type Data struct {
 }
 
 type Slo struct {
-	ID               uint     `json:"id,omitempty" tf:"id"`
-	Name             string   `json:"name" tf:"name"`
-	Description      string   `json:"description,omitempty" tf:"description"`
-	TimeIntervalType string   `json:"time_interval_type" tf:"time_interval_type"`
-	ServiceIDs       []string `json:"service_ids" tf:"service_ids"`
-	Slis             []string `json:"slis" tf:"slis"`
-	TargetSlo        float64  `json:"target_slo" tf:"target_slo"`
-	StartTime        string   `json:"start_time,omitempty" tf:"start_time"`
-	EndTime          string   `json:"end_time,omitempty" tf:"end_time"`
-	DurationInDays   int      `json:"duration_in_days,omitempty" tf:"duration_in_days"`
-	// Tags                json.RawMessage       `json:"tags,omitempty" tf:"tags"`
+	ID                  uint                  `json:"id,omitempty" tf:"id"`
+	Name                string                `json:"name" tf:"name"`
+	Description         string                `json:"description,omitempty" tf:"description"`
+	TimeIntervalType    string                `json:"time_interval_type" tf:"time_interval_type"`
+	ServiceIDs          []string              `json:"service_ids" tf:"service_ids"`
+	Slis                []string              `json:"slis" tf:"slis"`
+	TargetSlo           float64               `json:"target_slo" tf:"target_slo"`
+	StartTime           string                `json:"start_time,omitempty" tf:"start_time"`
+	EndTime             string                `json:"end_time,omitempty" tf:"end_time"`
+	DurationInDays      int                   `json:"duration_in_days,omitempty" tf:"duration_in_days"`
 	SloMonitoringChecks []*SloMonitoringCheck `json:"slo_monitoring_checks" tf:"rules"`
 	SloActions          []*SloAction          `json:"slo_actions" tf:"notify"`
 	OwnerType           string                `json:"owner_type" tf:"owner_type"`
@@ -69,10 +69,6 @@ func (c *SloNotify) Encode() (map[string]interface{}, error) {
 	return tfutils.Encode(c)
 }
 
-func (c *SloAction) Encode() (map[string]interface{}, error) {
-	return tfutils.Encode(c)
-}
-
 func (r *Slo) Encode() (map[string]interface{}, error) {
 	notify := make([]*SloNotify, 0)
 	notify = append(notify, &SloNotify{})
@@ -106,12 +102,12 @@ func (r *Slo) Encode() (map[string]interface{}, error) {
 		notify[0].OwnerType = r.OwnerType
 	}
 
-	eNotify, err := tfutils.EncodeSlice(notify)
+	notifyObj, err := tfutils.EncodeSlice(notify)
 	if err != nil {
 		fmt.Println(err)
 
 	}
-	m["notify"] = eNotify
+	m["notify"] = notifyObj
 
 	return m, nil
 }
@@ -133,14 +129,18 @@ func (r *Data) Encode() (map[string]interface{}, error) {
 
 func (client *Client) CreateSlo(ctx context.Context, orgID string, req *Slo) (*Slo, error) {
 	url := fmt.Sprintf("%s/slo?owner_type=team&owner_id=611262fcd5b4ea846b534a8a", client.BaseURLV3)
-	a, er := Request[Slo, Data](http.MethodPost, url, client, ctx, req)
-	return a.Slo, er
+	data, er := Request[Slo, Data](http.MethodPost, url, client, ctx, req)
+	return data.Slo, er
 }
 
 func (client *Client) GetSlo(ctx context.Context, orgID, sloID string) (*Slo, error) {
 	url := fmt.Sprintf("%s/slo/%s?owner_type=team&owner_id=611262fcd5b4ea846b534a8a", client.BaseURLV3, sloID)
 	data, er := Request[any, Data](http.MethodGet, url, client, ctx, nil)
-	return data.Slo, er
+	if data != nil {
+		return data.Slo, er
+	} else {
+		return nil, errors.New("Slo not found")
+	}
 }
 
 func (client *Client) UpdateSlo(ctx context.Context, orgID, sloID string, req *Slo) (*Slo, error) {

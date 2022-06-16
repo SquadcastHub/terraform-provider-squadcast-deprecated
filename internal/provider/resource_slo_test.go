@@ -1,21 +1,24 @@
 package provider
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
 )
 
 func TestAccResourceSlo(t *testing.T) {
-	sloName := acctest.RandomWithPrefix("slo")
+	sloName := acctest.RandomWithPrefix("terraform-acc-test-slo-")
 
 	resourceName := "squadcast_slo.test"
 	resource.UnitTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
-		// CheckDestroy:      testAccCheckSloDestroy,
+		CheckDestroy:      testAccCheckSloDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceSloConfig(sloName),
@@ -24,7 +27,9 @@ func TestAccResourceSlo(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "owner_id", "611262fcd5b4ea846b534a8a"),
 					resource.TestCheckResourceAttr(resourceName, "name", sloName),
 					resource.TestCheckResourceAttr(resourceName, "duration_in_days", "30"),
-					// TODO: Add more attributes for monitoring checks and actions
+					resource.TestCheckResourceAttr(resourceName, "notify.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "notify.0.users.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "notify.0.users.0", "5e1c2309342445001180f9c2"),
 				),
 			},
 			{
@@ -34,39 +39,30 @@ func TestAccResourceSlo(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "owner_id", "611262fcd5b4ea846b534a8a"),
 					resource.TestCheckResourceAttr(resourceName, "name", sloName),
 					resource.TestCheckResourceAttr(resourceName, "duration_in_days", "7"),
+					resource.TestCheckResourceAttr(resourceName, "notify.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "notify.0.users.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "notify.0.users.0", "5e1c2309342445001180f9c2"),
+					resource.TestCheckResourceAttr(resourceName, "notify.0.users.1", "617793e650d38001057faaaf"),
 				),
 			},
-			// {
-			// 	ResourceName:        resourceName,
-			// 	ImportState:         true,
-			// 	ImportStateVerify:   true,
-			// 	ImportStateIdPrefix: "613611c1eb22db455cfa789f:",
-			// },
 		},
 	})
 }
 
-// func testAccCheckSloDestroy(s *terraform.State) error {
-// 	client := testProvider.Meta().(*api.Client)
+func testAccCheckSloDestroy(s *terraform.State) error {
+	client := testProvider.Meta().(*api.Client)
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "squadcast_slo" {
+			continue
+		}
 
-// 	for _, rs := range s.RootModule().Resources {
-// 		if rs.Type != "squadcast_slo" {
-// 			continue
-// 		}
-
-// 		_, err := client.GetServiceById(context.Background(), rs.Primary.Attributes["owner_id"], rs.Primary.ID)
-// 		if err == nil {
-// 			return fmt.Errorf("expected service to be destroyed, %s found", rs.Primary.ID)
-// 		}
-
-// 		// FIXME: check for 404 errors, any other error is not acceptable.
-// 		// if !err.IsNotFoundError() {
-// 		// 	return err
-// 		// }
-// 	}
-
-// 	return nil
-// }
+		slo, _ := client.GetSlo(context.Background(), rs.Primary.Attributes["org_id"], rs.Primary.Attributes["id"])
+		if slo != nil {
+			return fmt.Errorf("expected slo to be destroyed, %s found", slo.Name)
+		}
+	}
+	return nil
+}
 
 func testAccResourceSloConfig(sloName string) string {
 	return fmt.Sprintf(`

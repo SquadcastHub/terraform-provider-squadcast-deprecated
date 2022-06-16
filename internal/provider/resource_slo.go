@@ -7,13 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
 )
 
 func resourceSlo() *schema.Resource {
 	return &schema.Resource{
-		Description: "DeduplicationRules resource.",
+		Description: "Slo resource.",
 
 		CreateContext: resourceSloCreate,
 		ReadContext:   resourceSloRead,
@@ -22,14 +23,15 @@ func resourceSlo() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Description: "id.",
+				Description: "Slo id.",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
 			"name": {
-				Description: "Slo name.",
-				Type:        schema.TypeString,
-				Required:    true,
+				Description:  "Slo name.",
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringLenBetween(1, 1000),
 			},
 			"description": {
 				Description: "Slo description.",
@@ -38,30 +40,12 @@ func resourceSlo() *schema.Resource {
 				Optional:    true,
 			},
 			"target_slo": {
-				Description: "Target Slo.",
+				Description: "Slo target.",
 				Type:        schema.TypeFloat,
 				Required:    true,
 			},
-			"owner_type": {
-				Description: "Owner type",
-				Type:        schema.TypeString,
-				Optional:    true,
-				Default:     "team",
-			},
-			"owner_id": {
-				Description:  "Team id.",
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: tfutils.ValidateObjectID,
-			},
-			"org_id": {
-				Description:  "Org id.",
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: tfutils.ValidateObjectID,
-			},
 			"service_ids": {
-				Description: "Service ids.",
+				Description: "Slo service ids.",
 				Type:        schema.TypeList,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -69,36 +53,38 @@ func resourceSlo() *schema.Resource {
 				Required: true,
 			},
 			"slis": {
-				Description: "Slis.",
+				Description: "Slo slis.",
 				Type:        schema.TypeList,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 				Required: true,
 			},
-			// TODO: add validation, support only 2 values
 			"time_interval_type": {
-				Description: "Slo type",
-				Type:        schema.TypeString,
-				Required:    true,
+				Description:  "Slo type",
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice([]string{"rolling", "fixed"}, false),
 			},
 			"duration_in_days": {
-				Description: "Duration in days.",
+				Description: "Slo duration in days.",
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Computed:    true,
 			},
 			"start_time": {
-				Description: "Start time.",
-				Type:        schema.TypeString,
-				Computed:    true,
-				Optional:    true,
+				Description:  "Slo start time.",
+				Type:         schema.TypeString,
+				Computed:     true,
+				Optional:     true,
+				ValidateFunc: validation.IsRFC3339Time,
 			},
 			"end_time": {
-				Description: "End time.",
-				Type:        schema.TypeString,
-				Computed:    true,
-				Optional:    true,
+				Description:  "Slo end time.",
+				Type:         schema.TypeString,
+				Computed:     true,
+				Optional:     true,
+				ValidateFunc: validation.IsRFC3339Time,
 			},
 			"rules": {
 				Description: "Slo monitoring checks.",
@@ -119,6 +105,8 @@ func resourceSlo() *schema.Resource {
 							Description: "Name of monitoring check.",
 							Type:        schema.TypeString,
 							Required:    true,
+							ValidateFunc: validation.StringInSlice([]string{"breached_error_budget", "unhealthy_slo",
+								"increased_false_positives", "remaining_error_budget"}, false),
 						},
 						"threshold": {
 							Description: "Threshold.",
@@ -146,8 +134,9 @@ func resourceSlo() *schema.Resource {
 				Optional: true,
 			},
 			"notify": {
-				Description: "Notify.",
+				Description: "Slo notify.",
 				Type:        schema.TypeList,
+				MaxItems:    1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -177,9 +166,10 @@ func resourceSlo() *schema.Resource {
 							Optional: true,
 						},
 						"service": {
-							Description: "Service id.",
-							Type:        schema.TypeString,
-							Optional:    true,
+							Description:  "Service id.",
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: tfutils.ValidateObjectID,
 						},
 						"owner_type": {
 							Description: "Owner type",
@@ -196,17 +186,45 @@ func resourceSlo() *schema.Resource {
 				},
 				Optional: true,
 			},
+			"owner_type": {
+				Description: "Slo owner type",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "team",
+			},
+			"owner_id": {
+				Description:  "Slo team id.",
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: tfutils.ValidateObjectID,
+			},
+			"org_id": {
+				Description:  "Slo org id.",
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: tfutils.ValidateObjectID,
+			},
 		},
 	}
 }
 
+var alertsMap = map[string]string{"is_breached_err_budget": "breached_error_budget",
+	"breached_error_budget":               "is_breached_err_budget",
+	"is_unhealthy_slo":                    "unhealthy_slo",
+	"unhealthy_slo":                       "is_unhealthy_slo",
+	"increased_false_positives_threshold": "increased_false_positives",
+	"increased_false_positives":           "increased_false_positives_threshold",
+	"remaining_err_budget_threshold":      "remaining_error_budget",
+	"remaining_error_budget":              "remaining_err_budget_threshold",
+}
+
 func resourceSloCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)
-	alerts := make([]*api.SloMonitoringCheck, 0)
-	sloActions := make([]*api.SloAction, 0)
+	rules := make([]*api.SloMonitoringCheck, 0)
 	notify := make([]*api.SloNotify, 0)
+	sloActions := make([]*api.SloAction, 0)
 
-	err := Decode(d.Get("rules"), &alerts)
+	err := Decode(d.Get("rules"), &rules)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -216,20 +234,11 @@ func resourceSloCreate(ctx context.Context, d *schema.ResourceData, meta any) di
 		return diag.FromErr(err)
 	}
 
-	for _, alert := range alerts {
-		switch alert.Name {
-		case "breached_error_budget":
-			alert.Name = "is_breached_err_budget"
-		case "unhealthy_slo":
-			alert.Name = "is_unhealthy_slo"
-		case "increased_false_positives":
-			alert.Name = "increased_false_positives_threshold"
-		case "remaining_error_budget":
-			alert.Name = "remaining_err_budget_threshold"
-		}
-		alert.OwnerType = "team"
-		alert.OwnerID = d.Get("owner_id").(string)
+	for _, alert := range rules {
+		alert.Name = alertsMap[alert.Name]
 		alert.IsChecked = true
+		alert.OwnerType = d.Get("owner_type").(string)
+		alert.OwnerID = d.Get("owner_id").(string)
 	}
 
 	for _, userID := range notify[0].Users {
@@ -278,7 +287,7 @@ func resourceSloCreate(ctx context.Context, d *schema.ResourceData, meta any) di
 		DurationInDays:      d.Get("duration_in_days").(int),
 		StartTime:           d.Get("start_time").(string),
 		EndTime:             d.Get("end_time").(string),
-		SloMonitoringChecks: alerts,
+		SloMonitoringChecks: rules,
 		SloActions:          sloActions,
 		OwnerType:           d.Get("owner_type").(string),
 		OwnerID:             d.Get("owner_id").(string),
@@ -316,16 +325,7 @@ func resourceSloRead(ctx context.Context, d *schema.ResourceData, meta any) diag
 	}
 
 	for _, alert := range slo.SloMonitoringChecks {
-		switch alert.Name {
-		case "is_breached_err_budget":
-			alert.Name = "breached_error_budget"
-		case "is_unhealthy_slo":
-			alert.Name = "unhealthy_slo"
-		case "increased_false_positives_threshold":
-			alert.Name = "increased_false_positives"
-		case "remaining_err_budget_threshold":
-			alert.Name = "remaining_error_budget"
-		}
+		alert.Name = alertsMap[alert.Name]
 	}
 
 	if err = tfutils.EncodeAndSet(slo, d); err != nil {
@@ -337,11 +337,11 @@ func resourceSloRead(ctx context.Context, d *schema.ResourceData, meta any) diag
 
 func resourceSloUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)
-	var alerts []*api.SloMonitoringCheck
+	var rules []*api.SloMonitoringCheck
 	sloActions := make([]*api.SloAction, 0)
 	notify := make([]*api.SloNotify, 0)
 
-	err := Decode(d.Get("rules"), &alerts)
+	err := Decode(d.Get("rules"), &rules)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -353,7 +353,7 @@ func resourceSloUpdate(ctx context.Context, d *schema.ResourceData, meta any) di
 
 	sloID, _ := strconv.ParseInt(d.Id(), 10, 32)
 
-	for _, alert := range alerts {
+	for _, alert := range rules {
 		switch alert.Name {
 		case "breached_error_budget":
 			alert.Name = "is_breached_err_budget"
@@ -424,7 +424,7 @@ func resourceSloUpdate(ctx context.Context, d *schema.ResourceData, meta any) di
 		DurationInDays:      d.Get("duration_in_days").(int),
 		StartTime:           d.Get("start_time").(string),
 		EndTime:             d.Get("end_time").(string),
-		SloMonitoringChecks: alerts,
+		SloMonitoringChecks: rules,
 		SloActions:          sloActions,
 		OwnerType:           d.Get("owner_type").(string),
 		OwnerID:             d.Get("owner_id").(string),
