@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
 )
 
 func init() {
@@ -35,7 +34,9 @@ func New(version string) func() *schema.Provider {
 				"squadcast_service":           dataSourceService(),
 				"squadcast_escalation_policy": dataSourceEscalationPolicy(),
 				// "squadcast_teams": dataSourceTeams(),
-				"squadcast_team": dataSourceTeam(),
+				"squadcast_team":     dataSourceTeam(),
+				"squadcast_user":     dataSourceUser(),
+				"squadcast_schedule": dataSourceSchedule(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
 				"squadcast_squad":               resourceSquad(),
@@ -50,15 +51,11 @@ func New(version string) func() *schema.Provider {
 				"squadcast_team_members":        resourceTeamMembers(),
 				"squadcast_user":                resourceUser(),
 				"squadcast_slo":                 resourceSlo(),
+				"squadcast_schedule":            resourceSchedule(),
+				"squadcast_escalation_policy":   resourceEscalationPolicy(),
+				"squadcast_runbook":             resourceRunbook(),
 			},
 			Schema: map[string]*schema.Schema{
-				"organization_id": {
-					Description:  "org id",
-					Type:         schema.TypeString,
-					Required:     true,
-					DefaultFunc:  schema.EnvDefaultFunc("SQUADCAST_ORGANIZATION_ID", ""),
-					ValidateFunc: tfutils.ValidateObjectID,
-				},
 				"region": {
 					Description:  "region",
 					Type:         schema.TypeString,
@@ -82,17 +79,15 @@ func New(version string) func() *schema.Provider {
 	}
 }
 
-func configure(version string, p *schema.Provider) func(context.Context, *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	return func(ctx context.Context, rd *schema.ResourceData) (c interface{}, diags diag.Diagnostics) {
+func configure(version string, p *schema.Provider) func(context.Context, *schema.ResourceData) (any, diag.Diagnostics) {
+	return func(ctx context.Context, rd *schema.ResourceData) (c any, diags diag.Diagnostics) {
 		client := &api.Client{}
 		client.UserAgent = p.UserAgent("terraform-provider-squadcast", version)
 
 		region := rd.Get("region").(string)
 		refreshToken := rd.Get("refresh_token").(string)
-		organizationID := rd.Get("organization_id").(string)
 
 		client.RefreshToken = refreshToken
-		client.OrganizationID = organizationID
 
 		switch region {
 		case "us":
@@ -111,13 +106,15 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 			client.BaseURLV3 = fmt.Sprintf("http://%s:8081/v3", client.Host)
 			client.BaseURLV2 = fmt.Sprintf("http://%s:8080/v2", client.Host)
 			client.AuthBaseURL = fmt.Sprintf("http://%s:8081/v3", client.Host)
+			client.IngestionBaseURL = fmt.Sprintf("http://%s:8458", client.Host)
 		} else {
 			client.BaseURLV3 = fmt.Sprintf("https://api.%s/v3", client.Host)
 			client.BaseURLV2 = fmt.Sprintf("https://platform-backend.%s/v2", client.Host)
 			client.AuthBaseURL = fmt.Sprintf("https://api.%s/v3", client.Host)
+			client.IngestionBaseURL = fmt.Sprintf("https://api.%s", client.Host)
 		}
 
-		err := client.GetAccessToken(ctx)
+		token, err := client.GetAccessToken(ctx)
 		if err != nil {
 			return nil, append(diags, diag.Diagnostic{
 				Severity: diag.Error,
@@ -125,6 +122,17 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 				Detail:   err.Error(),
 			})
 		}
+		client.AccessToken = token.AccessToken
+
+		org, err := client.GetCurrentOrganization(ctx)
+		if err != nil {
+			return nil, append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "An error occurred while fetching the organization.",
+				Detail:   err.Error(),
+			})
+		}
+		client.OrganizationID = org.ID
 
 		return client, nil
 	}

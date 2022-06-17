@@ -2,14 +2,13 @@ package provider
 
 import (
 	"context"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 func resourceService() *schema.Resource {
@@ -46,13 +45,14 @@ func resourceService() *schema.Resource {
 				Description:  "Team id.",
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: tfutils.ValidateObjectID,
+				ValidateFunc: tf.ValidateObjectID,
+				ForceNew:     true,
 			},
 			"escalation_policy_id": {
 				Description:  "Escalation policy id.",
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: tfutils.ValidateObjectID,
+				ValidateFunc: tf.ValidateObjectID,
 			},
 			"email_prefix": {
 				Description: "Email prefix.",
@@ -75,7 +75,15 @@ func resourceService() *schema.Resource {
 				Optional:    true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: tfutils.ValidateObjectID,
+					ValidateFunc: tf.ValidateObjectID,
+				},
+			},
+			"alert_source_endpoints": {
+				Description: "alert sources.",
+				Type:        schema.TypeMap,
+				Computed:    true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 		},
@@ -97,7 +105,7 @@ func resourceServiceImport(ctx context.Context, d *schema.ResourceData, meta any
 func resourceServiceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)
 
-	tflog.Info(ctx, "Creating service", map[string]interface{}{
+	tflog.Info(ctx, "Creating service", tf.M{
 		"name": d.Get("name").(string),
 	})
 	service, err := client.CreateService(ctx, &api.CreateServiceReq{
@@ -114,7 +122,7 @@ func resourceServiceCreate(ctx context.Context, d *schema.ResourceData, meta any
 	d.SetId(service.ID)
 
 	_, err = client.UpdateServiceDependencies(ctx, service.ID, &api.UpdateServiceDependenciesReq{
-		Data: tfutils.ListToSlice[string](d.Get("dependencies")),
+		Data: tf.ListToSlice[string](d.Get("dependencies")),
 	})
 	if err != nil {
 		return diag.FromErr(err)
@@ -133,7 +141,7 @@ func resourceServiceRead(ctx context.Context, d *schema.ResourceData, meta any) 
 		return diag.Errorf("invalid team id provided")
 	}
 
-	tflog.Info(ctx, "Reading service", map[string]interface{}{
+	tflog.Info(ctx, "Reading service", tf.M{
 		"id":   d.Id(),
 		"name": d.Get("name").(string),
 	})
@@ -142,10 +150,13 @@ func resourceServiceRead(ctx context.Context, d *schema.ResourceData, meta any) 
 		return diag.FromErr(err)
 	}
 
-	emailPrefix := strings.Split(service.Email, "@")[0]
-	d.Set("email_prefix", emailPrefix)
+	alertSources, err := client.ListAlertSources(ctx)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	service.AlertSources = alertSources.Available().EndpointMap(client.IngestionBaseURL, service)
 
-	if err = tfutils.EncodeAndSet(service, d); err != nil {
+	if err = tf.EncodeAndSet(service, d); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -166,7 +177,7 @@ func resourceServiceUpdate(ctx context.Context, d *schema.ResourceData, meta any
 	}
 
 	_, err = client.UpdateServiceDependencies(ctx, d.Id(), &api.UpdateServiceDependenciesReq{
-		Data: tfutils.ListToSlice[string](d.Get("dependencies")),
+		Data: tf.ListToSlice[string](d.Get("dependencies")),
 	})
 	if err != nil {
 		return diag.FromErr(err)
@@ -180,6 +191,10 @@ func resourceServiceDelete(ctx context.Context, d *schema.ResourceData, meta any
 
 	_, err := client.DeleteService(ctx, d.Id())
 	if err != nil {
+		if api.IsResourceNotFoundError(err) {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(err)
 	}
 

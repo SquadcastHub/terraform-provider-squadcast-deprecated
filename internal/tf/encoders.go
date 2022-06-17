@@ -1,4 +1,4 @@
-package tfutils
+package tf
 
 import (
 	"github.com/mitchellh/mapstructure"
@@ -7,15 +7,16 @@ import (
 const EncoderStructTag = "tf"
 
 type StateEncoder interface {
-	Encode() (map[string]interface{}, error)
+	Encode() (map[string]any, error)
 }
 
-func Encode(input interface{}) (map[string]interface{}, error) {
-	var m map[string]interface{}
+func Encode(input any) (map[string]any, error) {
+	var m map[string]any
 
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Result:  &m,
-		TagName: EncoderStructTag,
+		Result:               &m,
+		TagName:              EncoderStructTag,
+		IgnoreUntaggedFields: true,
 	})
 	if err != nil {
 		return nil, err
@@ -29,8 +30,8 @@ func Encode(input interface{}) (map[string]interface{}, error) {
 	return m, nil
 }
 
-func EncodeSlice[T StateEncoder](input []T) ([]interface{}, error) {
-	slice := make([]interface{}, len(input))
+func EncodeSlice[T StateEncoder](input []T) ([]any, error) {
+	slice := make([]any, len(input))
 	for i, v := range input {
 		m, err := v.Encode()
 		if err != nil {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 type SuppressionRuleCondition struct {
@@ -14,28 +14,28 @@ type SuppressionRuleCondition struct {
 	RHS string `json:"rhs" tf:"rhs"`
 }
 
-func (c *SuppressionRuleCondition) Encode() (map[string]interface{}, error) {
-	return tfutils.Encode(c)
+func (c *SuppressionRuleCondition) Encode() (tf.M, error) {
+	return tf.Encode(c)
 }
 
 type SuppressionRule struct {
 	IsBasic         bool                        `json:"is_basic" tf:"is_basic"`
 	Description     string                      `json:"description" tf:"description"`
 	Expression      string                      `json:"expression" tf:"expression"`
-	BasicExpression []*SuppressionRuleCondition `json:"basic_expression" tf:"basic_expression"`
+	BasicExpression []*SuppressionRuleCondition `json:"basic_expression" tf:"basic_expressions"`
 }
 
-func (r *SuppressionRule) Encode() (map[string]interface{}, error) {
-	m, err := tfutils.Encode(r)
+func (r *SuppressionRule) Encode() (tf.M, error) {
+	m, err := tf.Encode(r)
 	if err != nil {
 		return nil, err
 	}
 
-	basicExpression, err := tfutils.EncodeSlice(r.BasicExpression)
+	basicExpression, err := tf.EncodeSlice(r.BasicExpression)
 	if err != nil {
 		return nil, err
 	}
-	m["basic_expression"] = basicExpression
+	m["basic_expressions"] = basicExpression
 
 	return m, nil
 }
@@ -46,13 +46,13 @@ type SuppressionRules struct {
 	Rules     []*SuppressionRule `json:"rules" tf:"-"`
 }
 
-func (s *SuppressionRules) Encode() (map[string]interface{}, error) {
-	m, err := tfutils.Encode(s)
+func (s *SuppressionRules) Encode() (tf.M, error) {
+	m, err := tf.Encode(s)
 	if err != nil {
 		return nil, err
 	}
 
-	rules, err := tfutils.EncodeSlice(s.Rules)
+	rules, err := tf.EncodeSlice(s.Rules)
 	if err != nil {
 		return nil, err
 	}

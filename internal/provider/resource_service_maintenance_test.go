@@ -22,11 +22,11 @@ func TestAccResourceServiceMaintenance(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "service_id", "61361611c2fc70c3101ca7dd"),
-					resource.TestCheckResourceAttr(resourceName, "window.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "window.0.from", "2032-06-01T10:30:00.000Z"),
-					resource.TestCheckResourceAttr(resourceName, "window.0.till", "2032-06-01T11:30:00.000Z"),
-					resource.TestCheckResourceAttr(resourceName, "window.0.repeat_till", ""),
-					resource.TestCheckResourceAttr(resourceName, "window.0.repeat_frequency", ""),
+					resource.TestCheckResourceAttr(resourceName, "windows.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "windows.0.from", "2032-06-01T10:30:00.000Z"),
+					resource.TestCheckResourceAttr(resourceName, "windows.0.till", "2032-06-01T11:30:00.000Z"),
+					resource.TestCheckResourceAttr(resourceName, "windows.0.repeat_till", ""),
+					resource.TestCheckResourceAttr(resourceName, "windows.0.repeat_frequency", ""),
 				),
 			},
 			{
@@ -34,15 +34,15 @@ func TestAccResourceServiceMaintenance(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "service_id", "61361611c2fc70c3101ca7dd"),
-					resource.TestCheckResourceAttr(resourceName, "window.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "window.0.from", "2032-06-01T10:30:00.000Z"),
-					resource.TestCheckResourceAttr(resourceName, "window.0.till", "2032-06-01T11:30:00.000Z"),
-					resource.TestCheckResourceAttr(resourceName, "window.0.repeat_till", "2032-06-30T10:30:00.000Z"),
-					resource.TestCheckResourceAttr(resourceName, "window.0.repeat_frequency", "week"),
-					resource.TestCheckResourceAttr(resourceName, "window.1.from", "2032-07-01T10:30:00.000Z"),
-					resource.TestCheckResourceAttr(resourceName, "window.1.till", "2032-07-02T10:30:00.000Z"),
-					resource.TestCheckResourceAttr(resourceName, "window.1.repeat_till", ""),
-					resource.TestCheckResourceAttr(resourceName, "window.1.repeat_frequency", ""),
+					resource.TestCheckResourceAttr(resourceName, "windows.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "windows.0.from", "2032-06-01T10:30:00.000Z"),
+					resource.TestCheckResourceAttr(resourceName, "windows.0.till", "2032-06-01T11:30:00.000Z"),
+					resource.TestCheckResourceAttr(resourceName, "windows.0.repeat_till", "2032-06-30T10:30:00.000Z"),
+					resource.TestCheckResourceAttr(resourceName, "windows.0.repeat_frequency", "week"),
+					resource.TestCheckResourceAttr(resourceName, "windows.1.from", "2032-07-01T10:30:00.000Z"),
+					resource.TestCheckResourceAttr(resourceName, "windows.1.till", "2032-07-02T10:30:00.000Z"),
+					resource.TestCheckResourceAttr(resourceName, "windows.1.repeat_till", ""),
+					resource.TestCheckResourceAttr(resourceName, "windows.1.repeat_frequency", ""),
 				),
 			},
 			{
@@ -81,7 +81,7 @@ func testAccResourceServiceMaintenanceConfig() string {
 resource "squadcast_service_maintenance" "test" {
 	service_id = "61361611c2fc70c3101ca7dd"
 
-	window {
+	windows {
 		from = "2032-06-01T10:30:00.000Z"
 		till = "2032-06-01T11:30:00.000Z"
 	}
@@ -94,14 +94,14 @@ func testAccResourceServiceMaintenanceConfig_update() string {
 resource "squadcast_service_maintenance" "test" {
 	service_id = "61361611c2fc70c3101ca7dd"
 
-	window {
+	windows {
 		from = "2032-06-01T10:30:00.000Z"
 		till = "2032-06-01T11:30:00.000Z"
 		repeat_till = "2032-06-30T10:30:00.000Z"
 		repeat_frequency = "week"
 	}
 
-	window {
+	windows {
 		from = "2032-07-01T10:30:00.000Z"
 		till = "2032-07-02T10:30:00.000Z"
 	}

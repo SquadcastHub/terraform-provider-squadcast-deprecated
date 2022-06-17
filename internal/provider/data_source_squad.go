@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 func dataSourceSquad() *schema.Resource {
@@ -26,12 +26,14 @@ func dataSourceSquad() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1000),
+				ForceNew:     true,
 			},
 			"team_id": {
 				Description:  "Team id.",
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: tfutils.ValidateObjectID,
+				ValidateFunc: tf.ValidateObjectID,
+				ForceNew:     true,
 			},
 			"member_ids": {
 				Type:     schema.TypeList,
@@ -57,7 +59,7 @@ func dataSourceSquadRead(ctx context.Context, d *schema.ResourceData, meta any) 
 		return diag.Errorf("invalid team id provided")
 	}
 
-	tflog.Info(ctx, "Reading squad by name", map[string]interface{}{
+	tflog.Info(ctx, "Reading squad by name", tf.M{
 		"name": name.(string),
 	})
 	squad, err := client.GetSquadByName(ctx, teamID.(string), name.(string))
@@ -65,7 +67,7 @@ func dataSourceSquadRead(ctx context.Context, d *schema.ResourceData, meta any) 
 		return diag.FromErr(err)
 	}
 
-	if err = tfutils.EncodeAndSet(squad, d); err != nil {
+	if err = tf.EncodeAndSet(squad, d); err != nil {
 		return diag.FromErr(err)
 	}
 

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 type EscalationPolicy struct {
@@ -16,7 +16,7 @@ type EscalationPolicy struct {
 }
 
 func (s *EscalationPolicy) Encode() (map[string]interface{}, error) {
-	m, err := tfutils.Encode(s)
+	m, err := tf.Encode(s)
 	if err != nil {
 		return nil, err
 	}

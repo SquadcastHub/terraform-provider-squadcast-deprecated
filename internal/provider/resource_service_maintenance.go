@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 const serviceMaintenanceID = "service_maintenance"
@@ -35,9 +35,10 @@ func resourceServiceMaintenance() *schema.Resource {
 				Description:  "Service id.",
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: tfutils.ValidateObjectID,
+				ValidateFunc: tf.ValidateObjectID,
+				ForceNew:     true,
 			},
-			"window": {
+			"windows": {
 				Description: "window",
 				Type:        schema.TypeList,
 				Optional:    true,
@@ -91,7 +92,7 @@ func resourceServiceMaintenanceCreate(ctx context.Context, d *schema.ResourceDat
 	client := meta.(*api.Client)
 
 	var windows []api.ServiceMaintenanceWindow
-	err := Decode(d.Get("window"), &windows)
+	err := Decode(d.Get("windows"), &windows)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -144,7 +145,7 @@ func resourceServiceMaintenanceRead(ctx context.Context, d *schema.ResourceData,
 		return diag.Errorf("invalid service id provided")
 	}
 
-	tflog.Info(ctx, "Reading service maintenance", map[string]interface{}{
+	tflog.Info(ctx, "Reading service maintenance", tf.M{
 		"service_id": serviceID,
 	})
 	serviceMaintenanceWindows, err := client.GetServiceMaintenanceWindows(ctx, serviceID.(string))
@@ -152,12 +153,12 @@ func resourceServiceMaintenanceRead(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 
-	windows, err := tfutils.EncodeSlice(serviceMaintenanceWindows)
+	windows, err := tf.EncodeSlice(serviceMaintenanceWindows)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	err = d.Set("window", windows)
+	err = d.Set("windows", windows)
 	if err != nil {
 		return diag.FromErr(err)
 	}

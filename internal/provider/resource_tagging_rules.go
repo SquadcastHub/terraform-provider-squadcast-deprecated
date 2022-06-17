@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 const taggingRulesID = "tagging_rules"
@@ -34,13 +34,15 @@ func resourceTaggingRules() *schema.Resource {
 				Description:  "Team id.",
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: tfutils.ValidateObjectID,
+				ValidateFunc: tf.ValidateObjectID,
+				ForceNew:     true,
 			},
 			"service_id": {
 				Description:  "Service id.",
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: tfutils.ValidateObjectID,
+				ValidateFunc: tf.ValidateObjectID,
+				ForceNew:     true,
 			},
 			"rules": {
 				Type:     schema.TypeList,
@@ -57,7 +59,7 @@ func resourceTaggingRules() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 						},
-						"basic_expression": {
+						"basic_expressions": {
 							Description: "basic expression.",
 							Type:        schema.TypeList,
 							Optional:    true,
@@ -141,7 +143,7 @@ func resourceTaggingRulesCreate(ctx context.Context, d *schema.ResourceData, met
 
 	for i, mrule := range mrules {
 
-		mtags := mrule.(map[string]any)["tags"].([]any)
+		mtags := mrule.(tf.M)["tags"].([]any)
 
 		tags := make(map[string]api.TaggingRuleTagValue, len(mtags))
 
@@ -152,7 +154,7 @@ func resourceTaggingRulesCreate(ctx context.Context, d *schema.ResourceData, met
 				return diag.FromErr(err)
 			}
 
-			key := mtag.(map[string]any)["key"].(string)
+			key := mtag.(tf.M)["key"].(string)
 
 			tags[key] = tagvalue
 		}
@@ -160,7 +162,7 @@ func resourceTaggingRulesCreate(ctx context.Context, d *schema.ResourceData, met
 		rules[i].Tags = tags
 	}
 
-	tflog.Info(ctx, "Creating tagging_rules", map[string]interface{}{
+	tflog.Info(ctx, "Creating tagging_rules", tf.M{
 		"team_id":    d.Get("team_id").(string),
 		"service_id": d.Get("service_id").(string),
 	})
@@ -188,7 +190,7 @@ func resourceTaggingRulesRead(ctx context.Context, d *schema.ResourceData, meta 
 		return diag.Errorf("invalid service id provided")
 	}
 
-	tflog.Info(ctx, "Reading tagging_rules", map[string]interface{}{
+	tflog.Info(ctx, "Reading tagging_rules", tf.M{
 		"id":         d.Id(),
 		"team_id":    d.Get("team_id").(string),
 		"service_id": d.Get("service_id").(string),
@@ -198,7 +200,7 @@ func resourceTaggingRulesRead(ctx context.Context, d *schema.ResourceData, meta 
 		return diag.FromErr(err)
 	}
 
-	if err = tfutils.EncodeAndSet(taggingRules, d); err != nil {
+	if err = tf.EncodeAndSet(taggingRules, d); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -217,7 +219,7 @@ func resourceTaggingRulesUpdate(ctx context.Context, d *schema.ResourceData, met
 
 	for i, mrule := range mrules {
 
-		mtags := mrule.(map[string]any)["tags"].([]any)
+		mtags := mrule.(tf.M)["tags"].([]any)
 
 		tags := make(map[string]api.TaggingRuleTagValue, len(mtags))
 
@@ -228,7 +230,7 @@ func resourceTaggingRulesUpdate(ctx context.Context, d *schema.ResourceData, met
 				return diag.FromErr(err)
 			}
 
-			key := mtag.(map[string]any)["key"].(string)
+			key := mtag.(tf.M)["key"].(string)
 
 			tags[key] = tagvalue
 		}

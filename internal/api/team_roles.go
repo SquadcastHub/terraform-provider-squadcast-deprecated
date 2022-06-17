@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 func (client *Client) ListTeamRoles(ctx context.Context, teamID string) ([]*TeamRole, error) {
@@ -49,18 +51,18 @@ type UpdateTeamRoleReq struct {
 	Abilities []string
 }
 
-func decodeAbilities(ab []string) map[string]interface{} {
-	abilities := map[string]interface{}{}
+func decodeAbilities(ab []string) tf.M {
+	abilities := tf.M{}
 	for _, abilityStr := range ab {
 		parts := strings.Split(abilityStr, "-")
 		_, entityParts := parts[0], parts[1:]
 		entity := strings.Join(entityParts, "_")
 		entitymap, ok := abilities[entity]
 		if !ok {
-			abilities[entity] = map[string]interface{}{}
+			abilities[entity] = tf.M{}
 			entitymap = abilities[entity]
 		}
-		entitymap.(map[string]interface{})[abilityStr] = true
+		entitymap.(tf.M)[abilityStr] = true
 	}
 
 	return abilities
@@ -69,11 +71,11 @@ func decodeAbilities(ab []string) map[string]interface{} {
 func (client *Client) CreateTeamRole(ctx context.Context, teamID string, req *CreateTeamRoleReq) (*TeamRole, error) {
 	url := fmt.Sprintf("%s/teams/%s/roles", client.BaseURLV3, teamID)
 
-	payload := map[string]interface{}{}
+	payload := tf.M{}
 	payload["name"] = req.Name
 	payload["abilities"] = decodeAbilities(req.Abilities)
 
-	_, err := Request[map[string]interface{}, Team](http.MethodPost, url, client, ctx, &payload)
+	_, err := Request[tf.M, Team](http.MethodPost, url, client, ctx, &payload)
 	if err != nil {
 		return nil, err
 	}
@@ -84,11 +86,11 @@ func (client *Client) CreateTeamRole(ctx context.Context, teamID string, req *Cr
 func (client *Client) UpdateTeamRole(ctx context.Context, teamID string, id string, req *UpdateTeamRoleReq) (*TeamRole, error) {
 	url := fmt.Sprintf("%s/teams/%s/roles/%s", client.BaseURLV3, teamID, id)
 
-	payload := map[string]interface{}{}
+	payload := tf.M{}
 	payload["name"] = req.Name
 	payload["abilities"] = decodeAbilities(req.Abilities)
 
-	_, err := Request[map[string]interface{}, Team](http.MethodPut, url, client, ctx, &payload)
+	_, err := Request[tf.M, Team](http.MethodPut, url, client, ctx, &payload)
 	if err != nil {
 		return nil, err
 	}

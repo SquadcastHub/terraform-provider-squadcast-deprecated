@@ -55,17 +55,17 @@ func TestAccResourceDeduplicationRules(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "rules.0.is_basic", "false"),
 					resource.TestCheckResourceAttr(resourceName, "rules.0.description", "not basic"),
 					resource.TestCheckResourceAttr(resourceName, "rules.0.expression", "payload[\"event_id\"] == 40"),
-					resource.TestCheckResourceAttr(resourceName, "rules.0.basic_expression.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.basic_expressions.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "rules.0.dependency_deduplication", "false"),
 					resource.TestCheckResourceAttr(resourceName, "rules.0.time_window", "1"),
 					resource.TestCheckResourceAttr(resourceName, "rules.0.time_unit", "hour"),
 					resource.TestCheckResourceAttr(resourceName, "rules.1.is_basic", "true"),
 					resource.TestCheckResourceAttr(resourceName, "rules.1.description", "basic"),
 					resource.TestCheckResourceAttr(resourceName, "rules.1.expression", ""),
-					resource.TestCheckResourceAttr(resourceName, "rules.1.basic_expression.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "rules.1.basic_expression.0.lhs", "payload[\"foo\"]"),
-					resource.TestCheckResourceAttr(resourceName, "rules.1.basic_expression.0.op", "is"),
-					resource.TestCheckResourceAttr(resourceName, "rules.1.basic_expression.0.rhs", "bar"),
+					resource.TestCheckResourceAttr(resourceName, "rules.1.basic_expressions.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "rules.1.basic_expressions.0.lhs", "payload[\"foo\"]"),
+					resource.TestCheckResourceAttr(resourceName, "rules.1.basic_expressions.0.op", "is"),
+					resource.TestCheckResourceAttr(resourceName, "rules.1.basic_expressions.0.rhs", "bar"),
 					resource.TestCheckResourceAttr(resourceName, "rules.1.dependency_deduplication", "false"),
 					resource.TestCheckResourceAttr(resourceName, "rules.1.time_window", "1"),
 					resource.TestCheckResourceAttr(resourceName, "rules.1.time_unit", "hour"),
@@ -153,7 +153,7 @@ resource "squadcast_deduplication_rules" "test" {
 		is_basic = true
 		description = "basic"
 
-		basic_expression {
+		basic_expressions {
 			lhs = "payload[\"foo\"]"
 			op = "is"
 			rhs = "bar"

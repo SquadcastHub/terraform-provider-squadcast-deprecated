@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 func resourceTeam() *schema.Resource {
@@ -72,7 +72,7 @@ func resourceTeamImport(ctx context.Context, d *schema.ResourceData, meta any) (
 func resourceTeamCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)
 
-	tflog.Info(ctx, "Creating team", map[string]interface{}{
+	tflog.Info(ctx, "Creating team", tf.M{
 		"name": d.Get("name").(string),
 	})
 	team, err := client.CreateTeam(ctx, &api.CreateTeamReq{
@@ -91,7 +91,7 @@ func resourceTeamCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 func resourceTeamRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)
 
-	tflog.Info(ctx, "Reading team", map[string]interface{}{
+	tflog.Info(ctx, "Reading team", tf.M{
 		"id":   d.Id(),
 		"name": d.Get("name").(string),
 	})
@@ -100,7 +100,7 @@ func resourceTeamRead(ctx context.Context, d *schema.ResourceData, meta any) dia
 		return diag.FromErr(err)
 	}
 
-	if err = tfutils.EncodeAndSet(team, d); err != nil {
+	if err = tf.EncodeAndSet(team, d); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -126,6 +126,11 @@ func resourceTeamDelete(ctx context.Context, d *schema.ResourceData, meta any) d
 
 	_, err := client.DeleteTeam(ctx, d.Id())
 	if err != nil {
+		if api.IsResourceNotFoundError(err) {
+			d.SetId("")
+			return nil
+		}
+
 		return diag.FromErr(err)
 	}
 

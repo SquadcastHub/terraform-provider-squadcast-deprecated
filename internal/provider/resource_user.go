@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 func resourceUser() *schema.Resource {
@@ -41,89 +41,27 @@ func resourceUser() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1000),
 			},
-			// "name": {
-			// 	Description: "User name.",
-			// 	Type:        schema.TypeString,
-			// 	Computed:    true,
-			// },
 			"email": {
 				Description:  "User email.",
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotWhiteSpace,
+				ForceNew:     true,
 			},
-			// "is_email_verified": {
-			// 	Description: "User is_email_verified.",
-			// 	Type:        schema.TypeBool,
-			// 	Computed:    true,
-			// },
-			// "phone": {
-			// 	Description: "User phone.",
-			// 	Type:        schema.TypeString,
-			// 	Computed:    true,
-			// },
-			// "is_phone_verified": {
-			// 	Description: "User is_phone_verified.",
-			// 	Type:        schema.TypeBool,
-			// 	Computed:    true,
-			// },
 			"role": {
 				Description:  "User role.",
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringInSlice([]string{"user", "stakeholder"}, false),
 			},
-			// "time_zone": {
-			// 	Description: "User time_zone.",
-			// 	Type:        schema.TypeString,
-			// 	Computed:    true,
-			// },
-			// "abilities": {
-			// 	Description: "user abilities.",
-			// 	Type:        schema.TypeList,
-			// 	Optional:    true,
-			// 	Elem: &schema.Schema{
-			// 		Type: schema.TypeString,
-			// 	},
-			// },
-			// "notification_rules": {
-			// 	Description: "user notification_rules.",
-			// 	Type:        schema.TypeList,
-			// 	Optional:    true,
-			// 	Elem: &schema.Resource{
-			// 		Schema: map[string]*schema.Schema{
-			// 			"type": {
-			// 				Description: "notification rule type.",
-			// 				Type:        schema.TypeString,
-			// 				Computed:    true,
-			// 			},
-			// 			"delay_minutes": {
-			// 				Description: "notification rule delay_minutes.",
-			// 				Type:        schema.TypeInt,
-			// 				Computed:    true,
-			// 			},
-			// 		},
-			// 	},
-			// },
-			// "oncall_reminder_rules": {
-			// 	Description: "user oncall_reminder_rules.",
-			// 	Type:        schema.TypeList,
-			// 	Optional:    true,
-			// 	Elem: &schema.Resource{
-			// 		Schema: map[string]*schema.Schema{
-			// 			"type": {
-			// 				Description: "oncall reminder rule type.",
-			// 				Type:        schema.TypeString,
-			// 				Computed:    true,
-			// 			},
-			// 			"delay_minutes": {
-			// 				Description: "oncall reminder rule delay_minutes.",
-			// 				Type:        schema.TypeInt,
-			// 				Computed:    true,
-			// 			},
-			// 		},
-			// 	},
-			// },
+			"abilities": {
+				Description: "user abilities.",
+				Type:        schema.TypeList,
+				Optional:    true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -144,7 +82,7 @@ func resourceUserImport(ctx context.Context, d *schema.ResourceData, meta any) (
 func resourceUserCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)
 
-	tflog.Info(ctx, "Creating user", map[string]interface{}{})
+	tflog.Info(ctx, "Creating user", tf.M{})
 	user, err := client.CreateUser(ctx, &api.CreateUserReq{
 		FirstName: d.Get("first_name").(string),
 		LastName:  d.Get("last_name").(string),
@@ -156,6 +94,16 @@ func resourceUserCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 	}
 	d.SetId(user.ID)
 
+	if d.HasChange("abilities") {
+		_, err := client.UpdateUserAbilities(ctx, &api.UpdateUserAbilitiesReq{
+			UserID:    user.ID,
+			Abilities: tf.ListToSlice[string](d.Get("abilities")),
+		})
+		if err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
 	return resourceUserRead(ctx, d, meta)
 }
 
@@ -164,7 +112,7 @@ func resourceUserRead(ctx context.Context, d *schema.ResourceData, meta any) dia
 
 	id := d.Id()
 
-	tflog.Info(ctx, "Reading user", map[string]interface{}{
+	tflog.Info(ctx, "Reading user", tf.M{
 		"id": id,
 	})
 	user, err := client.GetUserById(ctx, id)
@@ -172,7 +120,7 @@ func resourceUserRead(ctx context.Context, d *schema.ResourceData, meta any) dia
 		return diag.FromErr(err)
 	}
 
-	if err = tfutils.EncodeAndSet(user, d); err != nil {
+	if err = tf.EncodeAndSet(user, d); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -193,6 +141,16 @@ func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, meta any) d
 		return diag.FromErr(err)
 	}
 
+	if d.HasChange("abilities") {
+		_, err := client.UpdateUserAbilities(ctx, &api.UpdateUserAbilitiesReq{
+			UserID:    d.Id(),
+			Abilities: tf.ListToSlice[string](d.Get("abilities")),
+		})
+		if err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
 	return resourceUserRead(ctx, d, meta)
 }
 
@@ -201,6 +159,10 @@ func resourceUserDelete(ctx context.Context, d *schema.ResourceData, meta any) d
 
 	_, err := client.DeleteUser(ctx, d.Id())
 	if err != nil {
+		if api.IsResourceNotFoundError(err) {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(err)
 	}
 

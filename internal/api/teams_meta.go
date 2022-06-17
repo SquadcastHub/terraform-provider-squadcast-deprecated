@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 type teamMetaRole struct {
@@ -22,8 +22,8 @@ type TeamMeta struct {
 	Roles       []*teamMetaRole `json:"roles" tf:"-"`
 }
 
-func (t *TeamMeta) Encode() (map[string]interface{}, error) {
-	m, err := tfutils.Encode(t)
+func (t *TeamMeta) Encode() (tf.M, error) {
+	m, err := tf.Encode(t)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func (t *TeamMeta) Encode() (map[string]interface{}, error) {
 		"Observer":    "observer",
 	}
 
-	roles := map[string]interface{}{}
+	roles := tf.M{}
 
 	for _, role := range t.Roles {
 		key := defaultRoleNames[role.Name]

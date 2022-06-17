@@ -2,14 +2,13 @@ package provider
 
 import (
 	"context"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 func dataSourceService() *schema.Resource {
@@ -27,6 +26,7 @@ func dataSourceService() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1000),
+				ForceNew:     true,
 			},
 			"description": {
 				Description: "Service description.",
@@ -37,7 +37,8 @@ func dataSourceService() *schema.Resource {
 				Description:  "Team id.",
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: tfutils.ValidateObjectID,
+				ValidateFunc: tf.ValidateObjectID,
+				ForceNew:     true,
 			},
 			"escalation_policy_id": {
 				Description: "Escalation policy id.",
@@ -62,10 +63,18 @@ func dataSourceService() *schema.Resource {
 			"dependencies": {
 				Description: "dependencies.",
 				Type:        schema.TypeList,
-				Optional:    true,
+				Computed:    true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: tfutils.ValidateObjectID,
+					ValidateFunc: tf.ValidateObjectID,
+				},
+			},
+			"alert_source_endpoints": {
+				Description: "alert sources.",
+				Type:        schema.TypeMap,
+				Computed:    true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 		},
@@ -85,7 +94,7 @@ func dataSourceServiceRead(ctx context.Context, d *schema.ResourceData, meta any
 		return diag.Errorf("invalid team id provided")
 	}
 
-	tflog.Info(ctx, "Reading service by name", map[string]interface{}{
+	tflog.Info(ctx, "Reading service by name", tf.M{
 		"name": name.(string),
 	})
 	service, err := client.GetServiceByName(ctx, teamID.(string), name.(string))
@@ -93,10 +102,13 @@ func dataSourceServiceRead(ctx context.Context, d *schema.ResourceData, meta any
 		return diag.FromErr(err)
 	}
 
-	emailPrefix := strings.Split(service.Email, "@")[0]
-	d.Set("email_prefix", emailPrefix)
+	alertSources, err := client.ListAlertSources(ctx)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	service.AlertSources = alertSources.Available().EndpointMap(client.IngestionBaseURL, service)
 
-	if err = tfutils.EncodeAndSet(service, d); err != nil {
+	if err = tf.EncodeAndSet(service, d); err != nil {
 		return diag.FromErr(err)
 	}
 

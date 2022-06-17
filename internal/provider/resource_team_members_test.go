@@ -22,11 +22,11 @@ func TestAccResourceTeamMembers(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "team_id", "629a2f542e0a6e82f408f280"),
-					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "member.0.user_id", "5ef5de4259c32c7ca25b0bfa"),
-					resource.TestCheckResourceAttr(resourceName, "member.0.roles.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "member.0.roles.0", "Manage Team"),
-					resource.TestCheckResourceAttr(resourceName, "member.0.roles.1", "Admin"),
+					resource.TestCheckResourceAttr(resourceName, "members.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "members.0.user_id", "5ef5de4259c32c7ca25b0bfa"),
+					resource.TestCheckResourceAttr(resourceName, "members.0.roles.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "members.0.roles.0", "Manage Team"),
+					resource.TestCheckResourceAttr(resourceName, "members.0.roles.1", "Admin"),
 				),
 			},
 			{
@@ -34,14 +34,14 @@ func TestAccResourceTeamMembers(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "team_id", "629a2f542e0a6e82f408f280"),
-					resource.TestCheckResourceAttr(resourceName, "member.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "member.0.user_id", "5ef5de4259c32c7ca25b0bfa"),
-					resource.TestCheckResourceAttr(resourceName, "member.0.roles.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "member.0.roles.0", "Manage Team"),
-					resource.TestCheckResourceAttr(resourceName, "member.0.roles.1", "Admin"),
-					resource.TestCheckResourceAttr(resourceName, "member.1.user_id", "5eb26b36ec9f070550204c85"),
-					resource.TestCheckResourceAttr(resourceName, "member.1.roles.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "member.1.roles.0", "Observer"),
+					resource.TestCheckResourceAttr(resourceName, "members.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "members.0.user_id", "5ef5de4259c32c7ca25b0bfa"),
+					resource.TestCheckResourceAttr(resourceName, "members.0.roles.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "members.0.roles.0", "Manage Team"),
+					resource.TestCheckResourceAttr(resourceName, "members.0.roles.1", "Admin"),
+					resource.TestCheckResourceAttr(resourceName, "members.1.user_id", "5eb26b36ec9f070550204c85"),
+					resource.TestCheckResourceAttr(resourceName, "members.1.roles.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "members.1.roles.0", "Observer"),
 				),
 			},
 			{
@@ -49,11 +49,11 @@ func TestAccResourceTeamMembers(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "team_id", "629a2f542e0a6e82f408f280"),
-					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "member.0.user_id", "5eb26b36ec9f070550204c85"),
-					resource.TestCheckResourceAttr(resourceName, "member.0.roles.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "member.0.roles.0", "Manage Team"),
-					resource.TestCheckResourceAttr(resourceName, "member.0.roles.1", "Observer"),
+					resource.TestCheckResourceAttr(resourceName, "members.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "members.0.user_id", "5eb26b36ec9f070550204c85"),
+					resource.TestCheckResourceAttr(resourceName, "members.0.roles.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "members.0.roles.0", "Manage Team"),
+					resource.TestCheckResourceAttr(resourceName, "members.0.roles.1", "Observer"),
 				),
 			},
 			{
@@ -98,7 +98,7 @@ func testAccResourceTeamMembersConfig() string {
 resource "squadcast_team_members" "test" {
 	team_id = "629a2f542e0a6e82f408f280"
 
-	member {
+	members {
 		user_id = "5ef5de4259c32c7ca25b0bfa"
 		roles = ["Manage Team", "Admin"]
 	}
@@ -111,12 +111,12 @@ func testAccResourceTeamMembersConfig_addMember() string {
 resource "squadcast_team_members" "test" {
 	team_id = "629a2f542e0a6e82f408f280"
 
-	member {
+	members {
 		user_id = "5ef5de4259c32c7ca25b0bfa"
 		roles = ["Manage Team", "Admin"]
 	}
 
-	member {
+	members {
 		user_id = "5eb26b36ec9f070550204c85"
 		roles = ["Observer"]
 	}
@@ -129,7 +129,7 @@ func testAccResourceTeamMembersConfig_removeMember() string {
 resource "squadcast_team_members" "test" {
 	team_id = "629a2f542e0a6e82f408f280"
 
-	member {
+	members {
 		user_id = "5eb26b36ec9f070550204c85"
 		roles = ["Manage Team", "Observer"]
 	}

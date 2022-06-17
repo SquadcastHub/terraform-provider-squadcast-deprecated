@@ -1,4 +1,4 @@
-package tfutils
+package tf
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func SetState(d *schema.ResourceData, m map[string]interface{}) error {
+func SetState(d *schema.ResourceData, m map[string]any) error {
 	id, ok := m["id"].(string)
 	if !ok {
 		sloID, ok := m["id"].(uint)

@@ -16,19 +16,19 @@ type AccessToken struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-func (client *Client) GetAccessToken(ctx context.Context) error {
+func (client *Client) GetAccessToken(ctx context.Context) (*AccessToken, error) {
 	path := "/oauth/access-token"
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, client.AuthBaseURL+path, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req.Header.Set("X-Refresh-Token", client.RefreshToken)
 	req.Header.Set("User-Agent", client.UserAgent)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var response struct {
@@ -39,17 +39,16 @@ func (client *Client) GetAccessToken(ctx context.Context) error {
 	defer resp.Body.Close()
 	bytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if err := json.Unmarshal(bytes, &response); err != nil {
-		return err
+		return nil, err
 	}
 
 	if resp.StatusCode > 299 {
-		return errors.New(response.Meta.Meta.Message)
+		return nil, errors.New(response.Meta.Meta.Message)
 	}
 
-	client.AccessToken = response.Data.AccessToken
-	return nil
+	return &response.Data, nil
 }

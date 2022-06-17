@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"sort"
 
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 type Team struct {
@@ -19,19 +19,19 @@ type Team struct {
 	Roles       []*TeamRole   `json:"roles" tf:"-"`
 }
 
-func (t *Team) Encode() (map[string]interface{}, error) {
-	m, err := tfutils.Encode(t)
+func (t *Team) Encode() (tf.M, error) {
+	m, err := tf.Encode(t)
 	if err != nil {
 		return nil, err
 	}
 
-	members, err := tfutils.EncodeSlice(t.Members)
+	members, err := tf.EncodeSlice(t.Members)
 	if err != nil {
 		return nil, err
 	}
 	m["members"] = members
 
-	roles, err := tfutils.EncodeSlice(t.Roles)
+	roles, err := tf.EncodeSlice(t.Roles)
 	if err != nil {
 		return nil, err
 	}
@@ -45,8 +45,8 @@ type TeamMember struct {
 	RoleIDs []string `json:"role_ids" tf:"role_ids"`
 }
 
-func (tm *TeamMember) Encode() (map[string]interface{}, error) {
-	return tfutils.Encode(tm)
+func (tm *TeamMember) Encode() (tf.M, error) {
+	return tf.Encode(tm)
 }
 
 type TeamRole struct {
@@ -57,8 +57,8 @@ type TeamRole struct {
 	Abilities RBACEntityAbilitiesMap `json:"abilities" tf:"-"`
 }
 
-func (tr *TeamRole) Encode() (map[string]interface{}, error) {
-	m, err := tfutils.Encode(tr)
+func (tr *TeamRole) Encode() (tf.M, error) {
+	m, err := tf.Encode(tr)
 	if err != nil {
 		return nil, err
 	}

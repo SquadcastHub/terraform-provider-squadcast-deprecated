@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 func resourceSlo() *schema.Resource {
@@ -169,7 +169,7 @@ func resourceSlo() *schema.Resource {
 							Description:  "Service id.",
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: tfutils.ValidateObjectID,
+							ValidateFunc: tf.ValidateObjectID,
 						},
 						"owner_type": {
 							Description: "Owner type",
@@ -196,13 +196,13 @@ func resourceSlo() *schema.Resource {
 				Description:  "Slo team id.",
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: tfutils.ValidateObjectID,
+				ValidateFunc: tf.ValidateObjectID,
 			},
 			"org_id": {
 				Description:  "Slo org id.",
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: tfutils.ValidateObjectID,
+				ValidateFunc: tf.ValidateObjectID,
 			},
 		},
 	}
@@ -281,8 +281,8 @@ func resourceSloCreate(ctx context.Context, d *schema.ResourceData, meta any) di
 		Name:                d.Get("name").(string),
 		Description:         d.Get("description").(string),
 		TargetSlo:           d.Get("target_slo").(float64),
-		ServiceIDs:          tfutils.ListToSlice[string](d.Get("service_ids")),
-		Slis:                tfutils.ListToSlice[string](d.Get("slis")),
+		ServiceIDs:          tf.ListToSlice[string](d.Get("service_ids")),
+		Slis:                tf.ListToSlice[string](d.Get("slis")),
 		TimeIntervalType:    d.Get("time_interval_type").(string),
 		DurationInDays:      d.Get("duration_in_days").(int),
 		StartTime:           d.Get("start_time").(string),
@@ -328,7 +328,7 @@ func resourceSloRead(ctx context.Context, d *schema.ResourceData, meta any) diag
 		alert.Name = alertsMap[alert.Name]
 	}
 
-	if err = tfutils.EncodeAndSet(slo, d); err != nil {
+	if err = tf.EncodeAndSet(slo, d); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -418,8 +418,8 @@ func resourceSloUpdate(ctx context.Context, d *schema.ResourceData, meta any) di
 		Name:                d.Get("name").(string),
 		Description:         d.Get("description").(string),
 		TargetSlo:           d.Get("target_slo").(float64),
-		ServiceIDs:          tfutils.ListToSlice[string](d.Get("service_ids")),
-		Slis:                tfutils.ListToSlice[string](d.Get("slis")),
+		ServiceIDs:          tf.ListToSlice[string](d.Get("service_ids")),
+		Slis:                tf.ListToSlice[string](d.Get("slis")),
 		TimeIntervalType:    d.Get("time_interval_type").(string),
 		DurationInDays:      d.Get("duration_in_days").(int),
 		StartTime:           d.Get("start_time").(string),

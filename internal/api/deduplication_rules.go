@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 type DeduplicationRuleCondition struct {
@@ -14,8 +14,8 @@ type DeduplicationRuleCondition struct {
 	RHS string `json:"rhs" tf:"rhs"`
 }
 
-func (c *DeduplicationRuleCondition) Encode() (map[string]interface{}, error) {
-	return tfutils.Encode(c)
+func (c *DeduplicationRuleCondition) Encode() (tf.M, error) {
+	return tf.Encode(c)
 }
 
 type DeduplicationRule struct {
@@ -25,20 +25,20 @@ type DeduplicationRule struct {
 	DependencyDeduplication bool                          `json:"dependency_deduplication" tf:"dependency_deduplication"`
 	TimeUnit                string                        `json:"time_unit" tf:"time_unit"`
 	TimeWindow              int                           `json:"time_window" tf:"time_window"`
-	BasicExpression         []*DeduplicationRuleCondition `json:"basic_expression" tf:"basic_expression"`
+	BasicExpression         []*DeduplicationRuleCondition `json:"basic_expression" tf:"basic_expressions"`
 }
 
-func (r *DeduplicationRule) Encode() (map[string]interface{}, error) {
-	m, err := tfutils.Encode(r)
+func (r *DeduplicationRule) Encode() (tf.M, error) {
+	m, err := tf.Encode(r)
 	if err != nil {
 		return nil, err
 	}
 
-	basicExpression, err := tfutils.EncodeSlice(r.BasicExpression)
+	basicExpression, err := tf.EncodeSlice(r.BasicExpression)
 	if err != nil {
 		return nil, err
 	}
-	m["basic_expression"] = basicExpression
+	m["basic_expressions"] = basicExpression
 
 	return m, nil
 }
@@ -49,13 +49,13 @@ type DeduplicationRules struct {
 	Rules     []*DeduplicationRule `json:"rules" tf:"-"`
 }
 
-func (s *DeduplicationRules) Encode() (map[string]interface{}, error) {
-	m, err := tfutils.Encode(s)
+func (s *DeduplicationRules) Encode() (tf.M, error) {
+	m, err := tf.Encode(s)
 	if err != nil {
 		return nil, err
 	}
 
-	rules, err := tfutils.EncodeSlice(s.Rules)
+	rules, err := tf.EncodeSlice(s.Rules)
 	if err != nil {
 		return nil, err
 	}

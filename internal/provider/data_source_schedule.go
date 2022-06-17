@@ -11,24 +11,24 @@ import (
 	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
-func dataSourceEscalationPolicy() *schema.Resource {
+func dataSourceSchedule() *schema.Resource {
 	return &schema.Resource{
-		Description: "What is a squadcast escalation policy?",
-		ReadContext: dataSourceEscalationPolicyRead,
+		Description: "What is a squadcast schedule?",
+		ReadContext: dataSourceScheduleRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Description: "Escalation policy id.",
+				Description: "Schedule id.",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
 			"name": {
-				Description:  "Escalation policy name.",
+				Description:  "Schedule name.",
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1000),
 			},
 			"description": {
-				Description: "Escalation policy description.",
+				Description: "Schedule description.",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
@@ -37,17 +37,23 @@ func dataSourceEscalationPolicy() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: tf.ValidateObjectID,
+				ForceNew:     true,
+			},
+			"color": {
+				Description: "color.",
+				Type:        schema.TypeString,
+				Computed:    true,
 			},
 		},
 	}
 }
 
-func dataSourceEscalationPolicyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourceScheduleRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)
 
 	name, ok := d.GetOk("name")
 	if !ok {
-		return diag.Errorf("invalid escalation policy name provided")
+		return diag.Errorf("invalid schedule name provided")
 	}
 
 	teamID, ok := d.GetOk("team_id")
@@ -55,20 +61,15 @@ func dataSourceEscalationPolicyRead(ctx context.Context, d *schema.ResourceData,
 		return diag.Errorf("invalid team id provided")
 	}
 
-	tflog.Info(ctx, "Reading escalation policy by name", map[string]interface{}{
+	tflog.Info(ctx, "Reading schedule by name", tf.M{
 		"name": name.(string),
 	})
-
-	escalationPolicy, err := client.GetEscalationPolicyByName(ctx, teamID.(string), name.(string))
+	schedule, err := client.GetScheduleByName(ctx, teamID.(string), name.(string))
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	if len(escalationPolicy) < 1 {
-		return diag.Errorf("Unable to find escalation policy with the name %s", name)
-	}
-
-	if err = tf.EncodeAndSet(escalationPolicy[0], d); err != nil {
+	if err = tf.EncodeAndSet(schedule, d); err != nil {
 		return diag.FromErr(err)
 	}
 

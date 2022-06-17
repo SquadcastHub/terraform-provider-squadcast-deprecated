@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 type Data struct {
@@ -62,23 +62,23 @@ type SloNotify struct {
 }
 
 func (c *SloMonitoringCheck) Encode() (map[string]interface{}, error) {
-	return tfutils.Encode(c)
+	return tf.Encode(c)
 }
 
 func (c *SloNotify) Encode() (map[string]interface{}, error) {
-	return tfutils.Encode(c)
+	return tf.Encode(c)
 }
 
 func (r *Slo) Encode() (map[string]interface{}, error) {
 	notify := make([]*SloNotify, 0)
 	notify = append(notify, &SloNotify{})
 
-	m, err := tfutils.Encode(r)
+	m, err := tf.Encode(r)
 	if err != nil {
 		return nil, err
 	}
 
-	sloMonitoringChecks, err := tfutils.EncodeSlice(r.SloMonitoringChecks)
+	sloMonitoringChecks, err := tf.EncodeSlice(r.SloMonitoringChecks)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func (r *Slo) Encode() (map[string]interface{}, error) {
 		notify[0].OwnerType = r.OwnerType
 	}
 
-	notifyObj, err := tfutils.EncodeSlice(notify)
+	notifyObj, err := tf.EncodeSlice(notify)
 	if err != nil {
 		fmt.Println(err)
 
@@ -113,12 +113,12 @@ func (r *Slo) Encode() (map[string]interface{}, error) {
 }
 
 func (r *Data) Encode() (map[string]interface{}, error) {
-	m, err := tfutils.Encode(r)
+	m, err := tf.Encode(r)
 	if err != nil {
 		return nil, err
 	}
 
-	slo, err := tfutils.Encode(r.Slo)
+	slo, err := tf.Encode(r.Slo)
 	if err != nil {
 		return nil, err
 	}

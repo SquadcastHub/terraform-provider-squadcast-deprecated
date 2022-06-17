@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 const routingRulesID = "routing_rules"
@@ -35,13 +35,15 @@ func resourceRoutingRules() *schema.Resource {
 				Description:  "Team id.",
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: tfutils.ValidateObjectID,
+				ValidateFunc: tf.ValidateObjectID,
+				ForceNew:     true,
 			},
 			"service_id": {
 				Description:  "Service id.",
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: tfutils.ValidateObjectID,
+				ValidateFunc: tf.ValidateObjectID,
+				ForceNew:     true,
 			},
 			"rules": {
 				Type:     schema.TypeList,
@@ -62,7 +64,7 @@ func resourceRoutingRules() *schema.Resource {
 							Description:  "route to entity id.",
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: tfutils.ValidateObjectID,
+							ValidateFunc: tf.ValidateObjectID,
 						},
 						"route_to_type": {
 							Description:  "route to type.",
@@ -70,7 +72,7 @@ func resourceRoutingRules() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringInSlice([]string{"user", "escalationpolicy", "squad"}, false),
 						},
-						"basic_expression": {
+						"basic_expressions": {
 							Description: "basic expression.",
 							Type:        schema.TypeList,
 							Optional:    true,
@@ -119,7 +121,7 @@ func resourceRoutingRulesCreate(ctx context.Context, d *schema.ResourceData, met
 		return diag.FromErr(err)
 	}
 
-	tflog.Info(ctx, "Creating routing_rules", map[string]interface{}{
+	tflog.Info(ctx, "Creating routing_rules", tf.M{
 		"team_id":    d.Get("team_id").(string),
 		"service_id": d.Get("service_id").(string),
 	})
@@ -147,7 +149,7 @@ func resourceRoutingRulesRead(ctx context.Context, d *schema.ResourceData, meta 
 		return diag.Errorf("invalid service id provided")
 	}
 
-	tflog.Info(ctx, "Reading routing_rules", map[string]interface{}{
+	tflog.Info(ctx, "Reading routing_rules", tf.M{
 		"id":         d.Id(),
 		"team_id":    d.Get("team_id").(string),
 		"service_id": d.Get("service_id").(string),
@@ -157,7 +159,7 @@ func resourceRoutingRulesRead(ctx context.Context, d *schema.ResourceData, meta 
 		return diag.FromErr(err)
 	}
 
-	if err = tfutils.EncodeAndSet(routingRules, d); err != nil {
+	if err = tf.EncodeAndSet(routingRules, d); err != nil {
 		return diag.FromErr(err)
 	}
 

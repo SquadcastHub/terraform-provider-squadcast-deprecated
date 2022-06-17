@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 type RoutingRuleCondition struct {
@@ -13,8 +13,8 @@ type RoutingRuleCondition struct {
 	RHS string `json:"rhs" tf:"rhs"`
 }
 
-func (c *RoutingRuleCondition) Encode() (map[string]interface{}, error) {
-	return tfutils.Encode(c)
+func (c *RoutingRuleCondition) Encode() (tf.M, error) {
+	return tf.Encode(c)
 }
 
 type RouteTo struct {
@@ -25,21 +25,21 @@ type RouteTo struct {
 type RoutingRule struct {
 	IsBasic         bool                    `json:"is_basic" tf:"is_basic"`
 	Expression      string                  `json:"expression" tf:"expression"`
-	BasicExpression []*RoutingRuleCondition `json:"basic_expression" tf:"basic_expression"`
+	BasicExpression []*RoutingRuleCondition `json:"basic_expression" tf:"basic_expressions"`
 	RouteTo         RouteTo                 `json:"route_to" tf:"route_to,squash"`
 }
 
-func (r *RoutingRule) Encode() (map[string]interface{}, error) {
-	m, err := tfutils.Encode(r)
+func (r *RoutingRule) Encode() (tf.M, error) {
+	m, err := tf.Encode(r)
 	if err != nil {
 		return nil, err
 	}
 
-	basicExpression, err := tfutils.EncodeSlice(r.BasicExpression)
+	basicExpression, err := tf.EncodeSlice(r.BasicExpression)
 	if err != nil {
 		return nil, err
 	}
-	m["basic_expression"] = basicExpression
+	m["basic_expressions"] = basicExpression
 
 	return m, nil
 }
@@ -50,13 +50,13 @@ type RoutingRules struct {
 	Rules     []*RoutingRule `json:"rules" tf:"-"`
 }
 
-func (s *RoutingRules) Encode() (map[string]interface{}, error) {
-	m, err := tfutils.Encode(s)
+func (s *RoutingRules) Encode() (tf.M, error) {
+	m, err := tf.Encode(s)
 	if err != nil {
 		return nil, err
 	}
 
-	rules, err := tfutils.EncodeSlice(s.Rules)
+	rules, err := tf.EncodeSlice(s.Rules)
 	if err != nil {
 		return nil, err
 	}

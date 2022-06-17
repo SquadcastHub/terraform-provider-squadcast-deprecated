@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 type ServiceMaintenanceWindow struct {
@@ -20,7 +20,7 @@ type ServiceMaintenanceWindow struct {
 	RepeatMonthly     bool   `json:"repetitionMonthly" tf:"-"`
 }
 
-func (s *ServiceMaintenanceWindow) Encode() (map[string]interface{}, error) {
+func (s *ServiceMaintenanceWindow) Encode() (tf.M, error) {
 	if s.RepeatDaily {
 		s.RepeatFrequency = "day"
 	} else if s.RepeatWeekly {
@@ -37,7 +37,7 @@ func (s *ServiceMaintenanceWindow) Encode() (map[string]interface{}, error) {
 		s.RepeatTill = ""
 	}
 
-	m, err := tfutils.Encode(s)
+	m, err := tf.Encode(s)
 	if err != nil {
 		return nil, err
 	}

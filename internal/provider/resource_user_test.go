@@ -28,6 +28,19 @@ func TestAccResourceUser(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "last_name", "lastname"),
 					resource.TestCheckResourceAttr(resourceName, "email", userName+"@example.com"),
 					resource.TestCheckResourceAttr(resourceName, "role", "user"),
+					resource.TestCheckNoResourceAttr(resourceName, "abilities.#"),
+				),
+			},
+			{
+				Config: testAccResourceUserConfig_abilities(userName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "first_name", userName),
+					resource.TestCheckResourceAttr(resourceName, "last_name", "lastname"),
+					resource.TestCheckResourceAttr(resourceName, "email", userName+"@example.com"),
+					resource.TestCheckResourceAttr(resourceName, "role", "user"),
+					resource.TestCheckResourceAttr(resourceName, "abilities.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "abilities.0", "manage-billing"),
 				),
 			},
 			{
@@ -93,6 +106,19 @@ resource "squadcast_user" "test" {
 	`, userName, userName)
 }
 
+func testAccResourceUserConfig_abilities(userName string) string {
+	return fmt.Sprintf(`
+resource "squadcast_user" "test" {
+	first_name = "%s"
+	last_name = "lastname"
+	email = "%s@example.com"
+	role = "user"
+
+	abilities = ["manage-billing"]
+}
+	`, userName, userName)
+}
+
 func testAccResourceUserConfig_stakeholder(userName string) string {
 	return fmt.Sprintf(`
 resource "squadcast_user" "test" {
@@ -100,6 +126,8 @@ resource "squadcast_user" "test" {
 	last_name = "lastname"
 	email = "%s@example.com"
 	role = "stakeholder"
+
+	abilities = ["manage-billing"]
 }
 		`, userName, userName)
 }

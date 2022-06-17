@@ -30,6 +30,7 @@ func TestAccDataSourceService(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "email", serviceName+"@squadcast.incidents.squadcast.com"),
 					resource.TestCheckResourceAttr(resourceName, "dependencies.#", "1"),
 					resource.TestCheckResourceAttrPair(resourceName, "dependencies.0", "squadcast_service.test_parent", "id"),
+					resource.TestCheckResourceAttr(resourceName, "alert_source_endpoints.email", serviceName+"@squadcast.incidents.squadcast.com"),
 				),
 			},
 		},

@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 const teamMembersID = "team_members"
@@ -34,9 +34,10 @@ func resourceTeamMembers() *schema.Resource {
 				Description:  "Team id.",
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: tfutils.ValidateObjectID,
+				ValidateFunc: tf.ValidateObjectID,
+				ForceNew:     true,
 			},
-			"member": {
+			"members": {
 				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Resource{
@@ -45,7 +46,7 @@ func resourceTeamMembers() *schema.Resource {
 							Description:  "user id?.",
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: tfutils.ValidateObjectID,
+							ValidateFunc: tf.ValidateObjectID,
 						},
 						"roles": {
 							Description: "role names.",
@@ -78,16 +79,16 @@ func resourceTeamMembersImport(ctx context.Context, d *schema.ResourceData, meta
 	return []*schema.ResourceData{d}, nil
 }
 
-func decodeTeamMembers(team *api.Team, memberslist interface{}) ([]*api.TeamMember, map[string]interface{}, error) {
-	roleIDsMap := map[string]interface{}{}
+func decodeTeamMembers(team *api.Team, memberslist any) ([]*api.TeamMember, tf.M, error) {
+	roleIDsMap := tf.M{}
 	for _, r := range team.Roles {
 		roleIDsMap[r.Name] = r.ID
 	}
 
-	tfmembers := memberslist.([]interface{})
+	tfmembers := memberslist.([]any)
 	members := make([]*api.TeamMember, 0, len(tfmembers))
 	for _, mem := range tfmembers {
-		roleNames := tfutils.ListToSlice[string](mem.(map[string]interface{})["roles"].([]interface{}))
+		roleNames := tf.ListToSlice[string](mem.(tf.M)["roles"].([]any))
 		roleIDs := make([]string, 0, len(roleNames))
 		for _, roleName := range roleNames {
 			roleID, ok := roleIDsMap[roleName]
@@ -98,7 +99,7 @@ func decodeTeamMembers(team *api.Team, memberslist interface{}) ([]*api.TeamMemb
 		}
 
 		member := &api.TeamMember{
-			UserID:  mem.(map[string]interface{})["user_id"].(string),
+			UserID:  mem.(tf.M)["user_id"].(string),
 			RoleIDs: roleIDs,
 		}
 
@@ -116,7 +117,7 @@ func resourceTeamMembersCreate(ctx context.Context, d *schema.ResourceData, meta
 		return diag.FromErr(err)
 	}
 
-	members, _, err := decodeTeamMembers(team, d.Get("member"))
+	members, _, err := decodeTeamMembers(team, d.Get("members"))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -139,19 +140,19 @@ func resourceTeamMembersRead(ctx context.Context, d *schema.ResourceData, meta a
 		return diag.FromErr(err)
 	}
 
-	roleNamesMap := map[string]interface{}{}
+	roleNamesMap := tf.M{}
 	for _, r := range team.Roles {
 		roleNamesMap[r.ID] = r.Name
 	}
 
-	members := make([]map[string]interface{}, 0, len(team.Members))
+	members := make([]tf.M, 0, len(team.Members))
 	for _, mem := range team.Members {
-		roleNames := make([]interface{}, 0, len(mem.RoleIDs))
+		roleNames := make([]any, 0, len(mem.RoleIDs))
 		for _, rid := range mem.RoleIDs {
 			roleNames = append(roleNames, roleNamesMap[rid])
 		}
 
-		member := map[string]interface{}{
+		member := tf.M{
 			"user_id": mem.UserID,
 			"roles":   roleNames,
 		}
@@ -159,7 +160,7 @@ func resourceTeamMembersRead(ctx context.Context, d *schema.ResourceData, meta a
 		members = append(members, member)
 	}
 
-	d.Set("member", members)
+	d.Set("members", members)
 
 	return nil
 }
@@ -176,7 +177,7 @@ func resourceTeamMembersDelete(ctx context.Context, d *schema.ResourceData, meta
 		return diag.FromErr(err)
 	}
 
-	members, roleIDsMap, err := decodeTeamMembers(team, d.Get("member"))
+	members, roleIDsMap, err := decodeTeamMembers(team, d.Get("members"))
 	if err != nil {
 		return diag.FromErr(err)
 	}

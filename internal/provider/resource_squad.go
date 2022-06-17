@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tfutils"
+	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
 )
 
 func resourceSquad() *schema.Resource {
@@ -41,7 +41,8 @@ func resourceSquad() *schema.Resource {
 				Description:  "Team id.",
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: tfutils.ValidateObjectID,
+				ValidateFunc: tf.ValidateObjectID,
+				ForceNew:     true,
 			},
 			"member_ids": {
 				Type:     schema.TypeList,
@@ -80,12 +81,12 @@ func resourceSquadImport(ctx context.Context, d *schema.ResourceData, meta any) 
 func resourceSquadCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)
 
-	tflog.Info(ctx, "Creating squad", map[string]interface{}{
+	tflog.Info(ctx, "Creating squad", tf.M{
 		"name": d.Get("name").(string),
 	})
 	squad, err := client.CreateSquad(ctx, &api.CreateSquadReq{
 		Name:      d.Get("name").(string),
-		MemberIDs: tfutils.ListToSlice[string](d.Get("member_ids")),
+		MemberIDs: tf.ListToSlice[string](d.Get("member_ids")),
 		TeamID:    d.Get("team_id").(string),
 	})
 	if err != nil {
@@ -107,7 +108,7 @@ func resourceSquadRead(ctx context.Context, d *schema.ResourceData, meta any) di
 		return diag.Errorf("invalid team id provided")
 	}
 
-	tflog.Info(ctx, "Reading squad", map[string]interface{}{
+	tflog.Info(ctx, "Reading squad", tf.M{
 		"id":   d.Id(),
 		"name": d.Get("name").(string),
 	})
@@ -116,7 +117,7 @@ func resourceSquadRead(ctx context.Context, d *schema.ResourceData, meta any) di
 		return diag.FromErr(err)
 	}
 
-	if err = tfutils.EncodeAndSet(squad, d); err != nil {
+	if err = tf.EncodeAndSet(squad, d); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -128,7 +129,7 @@ func resourceSquadUpdate(ctx context.Context, d *schema.ResourceData, meta any) 
 
 	_, err := client.UpdateSquad(ctx, d.Id(), &api.UpdateSquadReq{
 		Name:      d.Get("name").(string),
-		MemberIDs: tfutils.ListToSlice[string](d.Get("member_ids")),
+		MemberIDs: tf.ListToSlice[string](d.Get("member_ids")),
 	})
 	if err != nil {
 		return diag.FromErr(err)
@@ -142,6 +143,10 @@ func resourceSquadDelete(ctx context.Context, d *schema.ResourceData, meta any) 
 
 	_, err := client.DeleteSquad(ctx, d.Id())
 	if err != nil {
+		if api.IsResourceNotFoundError(err) {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(err)
 	}
 
