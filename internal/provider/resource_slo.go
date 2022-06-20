@@ -234,42 +234,10 @@ func resourceSloCreate(ctx context.Context, d *schema.ResourceData, meta any) di
 		return diag.FromErr(err)
 	}
 
-	for _, alert := range rules {
-		alert.Name = alertsMap[alert.Name]
-		alert.IsChecked = true
-		alert.OwnerType = d.Get("owner_type").(string)
-		alert.OwnerID = d.Get("owner_id").(string)
-	}
+	ownerID := d.Get("owner_id").(string)
+	ownerType := "team"
 
-	for _, userID := range notify[0].Users {
-		user := &api.SloAction{
-			Type:      "USER",
-			UserID:    userID,
-			OwnerID:   d.Get("owner_id").(string),
-			OwnerType: d.Get("owner_type").(string),
-		}
-		sloActions = append(sloActions, user)
-	}
-
-	if notify[0].Service != "" {
-		service := &api.SloAction{
-			Type:      "SERVICE",
-			UserID:    notify[0].Service,
-			OwnerID:   d.Get("owner_id").(string),
-			OwnerType: d.Get("owner_type").(string),
-		}
-		sloActions = append(sloActions, service)
-	}
-
-	for _, squadID := range notify[0].Squads {
-		user := &api.SloAction{
-			Type:      "SQUAD",
-			UserID:    squadID,
-			OwnerID:   d.Get("owner_id").(string),
-			OwnerType: d.Get("owner_type").(string),
-		}
-		sloActions = append(sloActions, user)
-	}
+	sloActions = formatRulesAndNotify(rules, notify, ownerID, 0)
 
 	tflog.Info(ctx, "Creating Slos", map[string]interface{}{
 		"name": d.Get("name").(string),
@@ -289,8 +257,8 @@ func resourceSloCreate(ctx context.Context, d *schema.ResourceData, meta any) di
 		EndTime:             d.Get("end_time").(string),
 		SloMonitoringChecks: rules,
 		SloActions:          sloActions,
-		OwnerType:           d.Get("owner_type").(string),
-		OwnerID:             d.Get("owner_id").(string),
+		OwnerType:           ownerType,
+		OwnerID:             ownerID,
 	})
 	if err != nil {
 		return diag.FromErr(err)
@@ -352,56 +320,10 @@ func resourceSloUpdate(ctx context.Context, d *schema.ResourceData, meta any) di
 	}
 
 	sloID, _ := strconv.ParseInt(d.Id(), 10, 32)
+	ownerID := d.Get("owner_id").(string)
+	ownerType := "team"
 
-	for _, alert := range rules {
-		switch alert.Name {
-		case "breached_error_budget":
-			alert.Name = "is_breached_err_budget"
-		case "unhealthy_slo":
-			alert.Name = "is_unhealthy_slo"
-		case "increased_false_positives":
-			alert.Name = "increased_false_positives_threshold"
-		case "remaining_error_budget":
-			alert.Name = "remaining_err_budget_threshold"
-		}
-		alert.OwnerType = "team"
-		alert.OwnerID = d.Get("owner_id").(string)
-		alert.IsChecked = true
-		alert.SloID = sloID
-	}
-
-	for _, userID := range notify[0].Users {
-		user := &api.SloAction{
-			Type:      "USER",
-			UserID:    userID,
-			SloID:     sloID,
-			OwnerID:   d.Get("owner_id").(string),
-			OwnerType: d.Get("owner_type").(string),
-		}
-		sloActions = append(sloActions, user)
-	}
-
-	if notify[0].Service != "" {
-		service := &api.SloAction{
-			Type:      "SERVICE",
-			UserID:    notify[0].Service,
-			SloID:     sloID,
-			OwnerID:   d.Get("owner_id").(string),
-			OwnerType: d.Get("owner_type").(string),
-		}
-		sloActions = append(sloActions, service)
-	}
-
-	for _, squadID := range notify[0].Squads {
-		user := &api.SloAction{
-			Type:      "SQUAD",
-			UserID:    squadID,
-			SloID:     sloID,
-			OwnerID:   d.Get("owner_id").(string),
-			OwnerType: d.Get("owner_type").(string),
-		}
-		sloActions = append(sloActions, user)
-	}
+	sloActions = formatRulesAndNotify(rules, notify, ownerID, sloID)
 
 	tflog.Info(ctx, "Updating Slos", map[string]interface{}{
 		"name": d.Get("name").(string),
@@ -426,8 +348,8 @@ func resourceSloUpdate(ctx context.Context, d *schema.ResourceData, meta any) di
 		EndTime:             d.Get("end_time").(string),
 		SloMonitoringChecks: rules,
 		SloActions:          sloActions,
-		OwnerType:           d.Get("owner_type").(string),
-		OwnerID:             d.Get("owner_id").(string),
+		OwnerType:           ownerType,
+		OwnerID:             ownerID,
 	})
 	if err != nil {
 		return diag.FromErr(err)
@@ -449,4 +371,51 @@ func resourceSloDelete(ctx context.Context, d *schema.ResourceData, meta any) di
 	}
 
 	return nil
+}
+
+// formatRulesAndNotify transform the payload into the format expected by the API and terraform state
+func formatRulesAndNotify(rules []*api.SloMonitoringCheck, notify []*api.SloNotify, ownerID string, sloID int64) []*api.SloAction {
+	sloActions := make([]*api.SloAction, 0)
+	for _, alert := range rules {
+		alert.Name = alertsMap[alert.Name]
+		alert.IsChecked = true
+		alert.SloID = sloID
+		alert.OwnerType = "team"
+		alert.OwnerID = ownerID
+	}
+
+	for _, userID := range notify[0].Users {
+		user := &api.SloAction{
+			Type:      "USER",
+			UserID:    userID,
+			SloID:     sloID,
+			OwnerID:   ownerID,
+			OwnerType: "team",
+		}
+		sloActions = append(sloActions, user)
+	}
+
+	for _, squadID := range notify[0].Squads {
+		user := &api.SloAction{
+			Type:      "SQUAD",
+			UserID:    squadID,
+			SloID:     sloID,
+			OwnerID:   ownerID,
+			OwnerType: "team",
+		}
+		sloActions = append(sloActions, user)
+	}
+
+	if notify[0].Service != "" {
+		service := &api.SloAction{
+			Type:      "SERVICE",
+			UserID:    notify[0].Service,
+			SloID:     sloID,
+			OwnerID:   ownerID,
+			OwnerType: "team",
+		}
+		sloActions = append(sloActions, service)
+	}
+
+	return sloActions
 }

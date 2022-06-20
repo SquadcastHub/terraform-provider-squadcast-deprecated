@@ -71,6 +71,8 @@ func (c *SloNotify) Encode() (map[string]interface{}, error) {
 
 func (r *Slo) Encode() (map[string]interface{}, error) {
 	notify := make([]*SloNotify, 0)
+	// Max item limit set to 1 for `notify` rule,
+	// However, notify type is still a list. so we are taking slice
 	notify = append(notify, &SloNotify{})
 
 	m, err := tf.Encode(r)
