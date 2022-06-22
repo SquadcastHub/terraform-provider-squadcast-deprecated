@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"sort"
 
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
+	"github.com/squadcast/terraform-provider-squadcast/internal/tf"
 )
 
 type Team struct {

@@ -1,4 +1,4 @@
-module github.com/hashicorp/terraform-provider-squadcast
+module github.com/squadcast/terraform-provider-squadcast
 
 go 1.18
 

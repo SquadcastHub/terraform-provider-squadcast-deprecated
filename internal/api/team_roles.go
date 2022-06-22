@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
+	"github.com/squadcast/terraform-provider-squadcast/internal/tf"
 )
 
 func (client *Client) ListTeamRoles(ctx context.Context, teamID string) ([]*TeamRole, error) {
