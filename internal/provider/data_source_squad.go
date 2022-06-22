@@ -26,14 +26,12 @@ func dataSourceSquad() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1000),
-				ForceNew:     true,
 			},
 			"team_id": {
 				Description:  "Team id.",
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: tf.ValidateObjectID,
-				ForceNew:     true,
 			},
 			"member_ids": {
 				Type:     schema.TypeList,

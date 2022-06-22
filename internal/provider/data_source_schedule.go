@@ -37,7 +37,6 @@ func dataSourceSchedule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: tf.ValidateObjectID,
-				ForceNew:     true,
 			},
 			"color": {
 				Description: "color.",

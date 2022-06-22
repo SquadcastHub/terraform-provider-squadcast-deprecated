@@ -26,7 +26,6 @@ func dataSourceService() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1000),
-				ForceNew:     true,
 			},
 			"description": {
 				Description: "Service description.",
@@ -38,7 +37,6 @@ func dataSourceService() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: tf.ValidateObjectID,
-				ForceNew:     true,
 			},
 			"escalation_policy_id": {
 				Description: "Escalation policy id.",
