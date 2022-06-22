@@ -15,7 +15,6 @@ func TestAccDataSourceSquad(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
-		CheckDestroy:      testAccCheckSquadDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccSquadDataSourceConfig(squadName),

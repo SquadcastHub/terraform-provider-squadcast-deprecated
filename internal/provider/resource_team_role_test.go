@@ -64,7 +64,7 @@ func TestAccResourceTeamRole(t *testing.T) {
 }
 
 func testAccCheckTeamRoleDestroy(s *terraform.State) error {
-	client := testProvider.Meta().(*api.Client)
+	client := testAccProvider.Meta().(*api.Client)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "squadcast_team_role" {

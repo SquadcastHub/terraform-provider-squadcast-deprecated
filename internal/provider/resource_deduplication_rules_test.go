@@ -84,7 +84,7 @@ func TestAccResourceDeduplicationRules(t *testing.T) {
 }
 
 func testAccCheckDeduplicationRulesDestroy(s *terraform.State) error {
-	client := testProvider.Meta().(*api.Client)
+	client := testAccProvider.Meta().(*api.Client)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "squadcast_deduplication_rules" {
