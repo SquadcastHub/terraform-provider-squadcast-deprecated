@@ -35,6 +35,7 @@ func New(version string) func() *schema.Provider {
 				"squadcast_team":     dataSourceTeam(),
 				"squadcast_user":     dataSourceUser(),
 				"squadcast_schedule": dataSourceSchedule(),
+				"squadcast_runbook":  dataSourceRunbook(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
 				"squadcast_squad":               resourceSquad(),
