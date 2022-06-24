@@ -27,7 +27,7 @@ type Slo struct {
 	SloMonitoringChecks []*SloMonitoringCheck `json:"slo_monitoring_checks" tf:"rules"`
 	SloActions          []*SloAction          `json:"slo_actions" tf:"notify"`
 	OwnerType           string                `json:"owner_type" tf:"owner_type"`
-	OwnerID             string                `json:"owner_id" tf:"owner_id"`
+	OwnerID             string                `json:"owner_id" tf:"team_id"`
 }
 
 type SloMonitoringCheck struct {
@@ -36,7 +36,7 @@ type SloMonitoringCheck struct {
 	Name      string `json:"name" tf:"name"`
 	Threshold int    `json:"threshold" tf:"threshold"`
 	OwnerType string `json:"owner_type" tf:"owner_type"`
-	OwnerID   string `json:"owner_id" tf:"owner_id"`
+	OwnerID   string `json:"owner_id" tf:"team_id"`
 	IsChecked bool   `json:"is_checked" tf:"is_checked"`
 }
 
@@ -48,7 +48,7 @@ type SloAction struct {
 	SquadID   string `json:"squad_id" tf:"squad_id"`
 	ServiceID string `json:"service_id" tf:"service_id"`
 	OwnerType string `json:"owner_type" tf:"owner_type"`
-	OwnerID   string `json:"owner_id" tf:"owner_id"`
+	OwnerID   string `json:"owner_id" tf:"team_id"`
 }
 
 type SloNotify struct {
@@ -58,7 +58,7 @@ type SloNotify struct {
 	Squads    []string `json:"squads" tf:"squads"`
 	Service   string   `json:"service" tf:"service"`
 	OwnerType string   `json:"owner_type" tf:"owner_type"`
-	OwnerID   string   `json:"owner_id" tf:"owner_id"`
+	OwnerID   string   `json:"owner_id" tf:"team_id"`
 }
 
 func (c *SloMonitoringCheck) Encode() (map[string]interface{}, error) {

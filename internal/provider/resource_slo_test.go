@@ -24,7 +24,7 @@ func TestAccResourceSlo(t *testing.T) {
 				Config: testAccResourceSloConfig(sloName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttr(resourceName, "owner_id", "611262fcd5b4ea846b534a8a"),
+					resource.TestCheckResourceAttr(resourceName, "team_id", "611262fcd5b4ea846b534a8a"),
 					resource.TestCheckResourceAttr(resourceName, "name", sloName),
 					resource.TestCheckResourceAttr(resourceName, "duration_in_days", "30"),
 					resource.TestCheckResourceAttr(resourceName, "notify.#", "1"),
@@ -36,7 +36,7 @@ func TestAccResourceSlo(t *testing.T) {
 				Config: testAccResourceSloConfig_update(sloName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttr(resourceName, "owner_id", "611262fcd5b4ea846b534a8a"),
+					resource.TestCheckResourceAttr(resourceName, "team_id", "611262fcd5b4ea846b534a8a"),
 					resource.TestCheckResourceAttr(resourceName, "name", sloName),
 					resource.TestCheckResourceAttr(resourceName, "duration_in_days", "7"),
 					resource.TestCheckResourceAttr(resourceName, "notify.#", "1"),
@@ -91,7 +91,7 @@ resource "squadcast_slo" "test" {
 	}
 	
 	owner_type="team"
-	owner_id = "611262fcd5b4ea846b534a8a"
+	team_id = "611262fcd5b4ea846b534a8a"
 }
 	`, sloName)
 }
@@ -128,7 +128,7 @@ resource "squadcast_slo" "test" {
 	}
 
 	owner_type="team"
-	owner_id = "611262fcd5b4ea846b534a8a"
+	team_id = "611262fcd5b4ea846b534a8a"
 }
 	`, sloName)
 }

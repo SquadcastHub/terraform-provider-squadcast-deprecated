@@ -121,10 +121,9 @@ func resourceSlo() *schema.Resource {
 						"owner_type": {
 							Description: "Owner type",
 							Type:        schema.TypeString,
-							Optional:    true,
-							Default:     "team",
+							Computed:    true,
 						},
-						"owner_id": {
+						"team_id": {
 							Description: "Team id.",
 							Type:        schema.TypeString,
 							Computed:    true,
@@ -174,10 +173,9 @@ func resourceSlo() *schema.Resource {
 						"owner_type": {
 							Description: "Owner type",
 							Type:        schema.TypeString,
-							Optional:    true,
-							Default:     "team",
+							Computed:    true,
 						},
-						"owner_id": {
+						"team_id": {
 							Description: "Team id.",
 							Type:        schema.TypeString,
 							Computed:    true,
@@ -192,7 +190,7 @@ func resourceSlo() *schema.Resource {
 				Optional:    true,
 				Default:     "team",
 			},
-			"owner_id": {
+			"team_id": {
 				Description:  "Slo team id.",
 				Type:         schema.TypeString,
 				Required:     true,
@@ -234,10 +232,10 @@ func resourceSloCreate(ctx context.Context, d *schema.ResourceData, meta any) di
 		return diag.FromErr(err)
 	}
 
-	ownerID := d.Get("owner_id").(string)
+	ownerID := d.Get("team_id").(string)
 	ownerType := "team"
 
-	sloActions = formatRulesAndNotify(rules, notify, ownerID, 0)
+	sloActions = formatRulesAndNotify(rules, notify, 0)
 
 	tflog.Info(ctx, "Creating Slos", map[string]interface{}{
 		"name": d.Get("name").(string),
@@ -283,8 +281,8 @@ func resourceSloRead(ctx context.Context, d *schema.ResourceData, meta any) diag
 	}
 
 	tflog.Info(ctx, "Reading Slos", map[string]interface{}{
-		"id":       d.Id(),
-		"owner_id": d.Get("owner_id").(string),
+		"id":      d.Id(),
+		"team_id": d.Get("team_id").(string),
 	})
 
 	slo, err := client.GetSlo(ctx, orgID.(string), sloID.(string))
@@ -320,10 +318,10 @@ func resourceSloUpdate(ctx context.Context, d *schema.ResourceData, meta any) di
 	}
 
 	sloID, _ := strconv.ParseInt(d.Id(), 10, 32)
-	ownerID := d.Get("owner_id").(string)
+	ownerID := d.Get("team_id").(string)
 	ownerType := "team"
 
-	sloActions = formatRulesAndNotify(rules, notify, ownerID, sloID)
+	sloActions = formatRulesAndNotify(rules, notify, sloID)
 
 	tflog.Info(ctx, "Updating Slos", map[string]interface{}{
 		"name": d.Get("name").(string),
@@ -374,45 +372,37 @@ func resourceSloDelete(ctx context.Context, d *schema.ResourceData, meta any) di
 }
 
 // formatRulesAndNotify transform the payload into the format expected by the API and terraform state
-func formatRulesAndNotify(rules []*api.SloMonitoringCheck, notify []*api.SloNotify, ownerID string, sloID int64) []*api.SloAction {
+func formatRulesAndNotify(rules []*api.SloMonitoringCheck, notify []*api.SloNotify, sloID int64) []*api.SloAction {
 	sloActions := make([]*api.SloAction, 0)
 	for _, alert := range rules {
 		alert.Name = alertsMap[alert.Name]
 		alert.IsChecked = true
 		alert.SloID = sloID
-		alert.OwnerType = "team"
-		alert.OwnerID = ownerID
 	}
 
 	for _, userID := range notify[0].Users {
 		user := &api.SloAction{
-			Type:      "USER",
-			UserID:    userID,
-			SloID:     sloID,
-			OwnerID:   ownerID,
-			OwnerType: "team",
+			Type:   "USER",
+			UserID: userID,
+			SloID:  sloID,
 		}
 		sloActions = append(sloActions, user)
 	}
 
 	for _, squadID := range notify[0].Squads {
 		user := &api.SloAction{
-			Type:      "SQUAD",
-			UserID:    squadID,
-			SloID:     sloID,
-			OwnerID:   ownerID,
-			OwnerType: "team",
+			Type:   "SQUAD",
+			UserID: squadID,
+			SloID:  sloID,
 		}
 		sloActions = append(sloActions, user)
 	}
 
 	if notify[0].Service != "" {
 		service := &api.SloAction{
-			Type:      "SERVICE",
-			UserID:    notify[0].Service,
-			SloID:     sloID,
-			OwnerID:   ownerID,
-			OwnerType: "team",
+			Type:   "SERVICE",
+			UserID: notify[0].Service,
+			SloID:  sloID,
 		}
 		sloActions = append(sloActions, service)
 	}
