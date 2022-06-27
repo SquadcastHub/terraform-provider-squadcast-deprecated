@@ -129,14 +129,14 @@ func (r *Data) Encode() (map[string]interface{}, error) {
 	return m, nil
 }
 
-func (client *Client) CreateSlo(ctx context.Context, orgID string, req *Slo) (*Slo, error) {
-	url := fmt.Sprintf("%s/slo?owner_type=team&owner_id=611262fcd5b4ea846b534a8a", client.BaseURLV3)
+func (client *Client) CreateSlo(ctx context.Context, orgID, ownerID string, req *Slo) (*Slo, error) {
+	url := fmt.Sprintf("%s/slo?owner_type=team&owner_id=%s", client.BaseURLV3, ownerID)
 	data, er := Request[Slo, Data](http.MethodPost, url, client, ctx, req)
 	return data.Slo, er
 }
 
-func (client *Client) GetSlo(ctx context.Context, orgID, sloID string) (*Slo, error) {
-	url := fmt.Sprintf("%s/slo/%s?owner_type=team&owner_id=611262fcd5b4ea846b534a8a", client.BaseURLV3, sloID)
+func (client *Client) GetSlo(ctx context.Context, orgID, ownerID, sloID string) (*Slo, error) {
+	url := fmt.Sprintf("%s/slo/%s?owner_type=team&owner_id=%s", client.BaseURLV3, sloID, ownerID)
 	data, er := Request[any, Data](http.MethodGet, url, client, ctx, nil)
 	if data != nil {
 		return data.Slo, er
@@ -145,12 +145,14 @@ func (client *Client) GetSlo(ctx context.Context, orgID, sloID string) (*Slo, er
 	}
 }
 
-func (client *Client) UpdateSlo(ctx context.Context, orgID, sloID string, req *Slo) (*Slo, error) {
-	url := fmt.Sprintf("%s/slo/%s?owner_type=team&owner_id=611262fcd5b4ea846b534a8a", client.BaseURLV3, sloID)
+func (client *Client) UpdateSlo(ctx context.Context, orgID, ownerID, sloID string, req *Slo) (*Slo, error) {
+	url := fmt.Sprintf("%s/slo/%s?owner_type=team&owner_id=%s", client.BaseURLV3, sloID, ownerID)
 	return Request[Slo, Slo](http.MethodPut, url, client, ctx, req)
 }
 
-func (client *Client) DeleteSlo(ctx context.Context, orgID, sloID string) (*any, error) {
-	url := fmt.Sprintf("%s/slo/%s?owner_type=team&owner_id=611262fcd5b4ea846b534a8a", client.BaseURLV3, sloID)
+func (client *Client) DeleteSlo(ctx context.Context, orgID, ownerID, sloID string) (*any, error) {
+	url := fmt.Sprintf("%s/slo/%s?owner_type=team&owner_id=%s", client.BaseURLV3, sloID, ownerID)
 	return Request[any, any](http.MethodDelete, url, client, ctx, nil)
 }
+
+// 611262fcd5b4ea846b534a8a

@@ -243,7 +243,7 @@ func resourceSloCreate(ctx context.Context, d *schema.ResourceData, meta any) di
 
 	orgID := d.Get("org_id").(string)
 
-	slo, err := client.CreateSlo(ctx, orgID, &api.Slo{
+	slo, err := client.CreateSlo(ctx, orgID, ownerID, &api.Slo{
 		Name:                d.Get("name").(string),
 		Description:         d.Get("description").(string),
 		TargetSlo:           d.Get("target_slo").(float64),
@@ -280,12 +280,17 @@ func resourceSloRead(ctx context.Context, d *schema.ResourceData, meta any) diag
 		return diag.Errorf("invalid slo id")
 	}
 
+	teamID, ok := d.GetOk("team_id")
+	if !ok {
+		return diag.Errorf("invalid team id")
+	}
+
 	tflog.Info(ctx, "Reading Slos", map[string]interface{}{
 		"id":      d.Id(),
 		"team_id": d.Get("team_id").(string),
 	})
 
-	slo, err := client.GetSlo(ctx, orgID.(string), sloID.(string))
+	slo, err := client.GetSlo(ctx, orgID.(string), teamID.(string), sloID.(string))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -334,7 +339,7 @@ func resourceSloUpdate(ctx context.Context, d *schema.ResourceData, meta any) di
 		"name": d.Get("name").(string),
 	})
 
-	_, err = client.UpdateSlo(ctx, orgID, id, &api.Slo{
+	_, err = client.UpdateSlo(ctx, orgID, ownerID, id, &api.Slo{
 		Name:                d.Get("name").(string),
 		Description:         d.Get("description").(string),
 		TargetSlo:           d.Get("target_slo").(float64),
@@ -363,7 +368,12 @@ func resourceSloDelete(ctx context.Context, d *schema.ResourceData, meta any) di
 		"name": d.Get("name").(string),
 	})
 
-	_, err := client.DeleteSlo(ctx, d.Get("org_id").(string), d.Id())
+	teamID, ok := d.GetOk("team_id")
+	if !ok {
+		return diag.Errorf("invalid team id")
+	}
+
+	_, err := client.DeleteSlo(ctx, d.Get("org_id").(string), teamID.(string), d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
