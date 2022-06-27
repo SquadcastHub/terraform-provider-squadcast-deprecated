@@ -14,7 +14,7 @@ import (
 
 func resourceSlo() *schema.Resource {
 	return &schema.Resource{
-		Description: "Slo resource.",
+		Description: "`squadcast_slo` manages an SLO.",
 
 		CreateContext: resourceSloCreate,
 		ReadContext:   resourceSloRead,
@@ -23,37 +23,38 @@ func resourceSlo() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Description: "Slo id.",
+				Description: "The ID of the SLO.",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
 			"name": {
-				Description:  "Slo name.",
+				Description:  "The name of the SLO.",
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1000),
 			},
 			"description": {
-				Description: "Slo description.",
+				Description: "Description of the SLO.",
 				Type:        schema.TypeString,
 				Default:     "Slo created from terraform provider",
 				Optional:    true,
 			},
 			"target_slo": {
-				Description: "Slo target.",
+				Description: "The target SLO for the time period.",
 				Type:        schema.TypeFloat,
 				Required:    true,
 			},
 			"service_ids": {
-				Description: "Slo service ids.",
-				Type:        schema.TypeList,
+				Description: "Service IDs associated with the SLO." +
+					"Only incidents from the associated services can be promoted as SLO violating incident",
+				Type: schema.TypeList,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 				Required: true,
 			},
 			"slis": {
-				Description: "Slo slis.",
+				Description: "List of indentified SLIs for the SLO",
 				Type:        schema.TypeList,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -61,65 +62,68 @@ func resourceSlo() *schema.Resource {
 				Required: true,
 			},
 			"time_interval_type": {
-				Description:  "Slo type",
+				Description:  "Type of the SLO. Values can either be \"rolling\" or \"fixed\"",
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringInSlice([]string{"rolling", "fixed"}, false),
 			},
 			"duration_in_days": {
-				Description: "Slo duration in days.",
+				Description: "Tracks SLO for the last x days. Required only when SLO time interval type set to \"rolling\"",
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Computed:    true,
 			},
 			"start_time": {
-				Description:  "Slo start time.",
+				Description:  "SLO start time. Required only when SLO time interval type set to \"fixed\"",
 				Type:         schema.TypeString,
 				Computed:     true,
 				Optional:     true,
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 			"end_time": {
-				Description:  "Slo end time.",
+				Description:  "SLO end time. Required only when SLO time interval type set to \"fixed\"",
 				Type:         schema.TypeString,
 				Computed:     true,
 				Optional:     true,
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 			"rules": {
-				Description: "Slo monitoring checks.",
+				Description: "SLO monitoring checks has rules for monitoring any SLO violation(Or warning signs)",
 				Type:        schema.TypeList,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
-							Description: "id.",
+							Description: "The ID of the monitoring rule",
 							Type:        schema.TypeInt,
 							Computed:    true,
 						},
 						"slo_id": {
-							Description: "Slo id.",
+							Description: "The ID of the SLO",
 							Type:        schema.TypeInt,
 							Computed:    true,
 						},
 						"name": {
-							Description: "Name of monitoring check.",
-							Type:        schema.TypeString,
-							Required:    true,
+							Description: "The name of monitoring check." +
+								"\"Supported values are \"breached_error_budget\", \"unhealthy_slo\"," +
+								"\"increased_false_positives\", \"remaining_error_budget\"",
+							Type:     schema.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{"breached_error_budget", "unhealthy_slo",
 								"increased_false_positives", "remaining_error_budget"}, false),
 						},
 						"threshold": {
-							Description: "Threshold.",
-							Type:        schema.TypeInt,
-							Optional:    true,
+							Description: "Threshold for the monitoring check" +
+								"Only supported for rules name \"increased_false_positives\" and \"remaining_error_budget\"",
+							Type:     schema.TypeInt,
+							Optional: true,
 						},
 						"is_checked": {
-							Description: "is checked?",
+							Description: "Is checked?",
 							Type:        schema.TypeBool,
 							Computed:    true,
 						},
 						"owner_type": {
-							Description: "Owner type",
+							Description: "SLO owner type",
 							Type:        schema.TypeString,
 							Computed:    true,
 						},
@@ -133,23 +137,24 @@ func resourceSlo() *schema.Resource {
 				Optional: true,
 			},
 			"notify": {
-				Description: "Slo notify.",
-				Type:        schema.TypeList,
-				MaxItems:    1,
+				Description: "Notification rules for SLO violation" +
+					"User can either choose to create an incident or get alerted via email",
+				Type:     schema.TypeList,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
-							Description: "id.",
+							Description: "The ID of the notification rule",
 							Type:        schema.TypeInt,
 							Computed:    true,
 						},
 						"slo_id": {
-							Description: "Slo id.",
+							Description: "The ID of the SLO.",
 							Type:        schema.TypeInt,
 							Computed:    true,
 						},
 						"users": {
-							Description: "User ids..",
+							Description: "List of user ID's who should be alerted via email.",
 							Type:        schema.TypeList,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
@@ -157,7 +162,7 @@ func resourceSlo() *schema.Resource {
 							Optional: true,
 						},
 						"squads": {
-							Description: "Squad ids..",
+							Description: "List of Squad ID's who should be alerted via email.",
 							Type:        schema.TypeList,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
@@ -165,18 +170,18 @@ func resourceSlo() *schema.Resource {
 							Optional: true,
 						},
 						"service": {
-							Description:  "Service id.",
+							Description:  "The ID of the service in which the user want to create an incident",
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: tf.ValidateObjectID,
 						},
 						"owner_type": {
-							Description: "Owner type",
+							Description: "The Owner type",
 							Type:        schema.TypeString,
 							Computed:    true,
 						},
 						"team_id": {
-							Description: "Team id.",
+							Description: "Team ID.",
 							Type:        schema.TypeString,
 							Computed:    true,
 						},
@@ -185,19 +190,19 @@ func resourceSlo() *schema.Resource {
 				Optional: true,
 			},
 			"owner_type": {
-				Description: "Slo owner type",
+				Description: "Owner type",
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "team",
 			},
 			"team_id": {
-				Description:  "Slo team id.",
+				Description:  "The team which SLO resource belongs to",
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: tf.ValidateObjectID,
 			},
 			"org_id": {
-				Description:  "Slo org id.",
+				Description:  "The organization ID.",
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: tf.ValidateObjectID,

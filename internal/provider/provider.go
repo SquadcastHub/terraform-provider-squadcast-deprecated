@@ -57,14 +57,15 @@ func New(version string) func() *schema.Provider {
 			},
 			Schema: map[string]*schema.Schema{
 				"region": {
-					Description:  "region",
+					Description: "The region you are currently hosted on." +
+						"Supported values are \"us\" and \"eu\"",
 					Type:         schema.TypeString,
 					Optional:     true,
 					DefaultFunc:  schema.EnvDefaultFunc("SQUADCAST_REGION", "us"),
 					ValidateFunc: validation.StringInSlice([]string{"us", "eu", "internal", "staging", "dev"}, false),
 				},
 				"refresh_token": {
-					Description: "refresh token",
+					Description: "The refresh token, This can be created from user profile",
 					Type:        schema.TypeString,
 					Sensitive:   true,
 					Required:    true,
