@@ -126,16 +126,7 @@ func (client *Client) GetUserById(ctx context.Context, id string) (*ResourceUser
 func (client *Client) GetUserByEmail(ctx context.Context, email string) (*DataSourceUser, error) {
 	url := fmt.Sprintf("%s/users?email=%s", client.BaseURLV3, url.QueryEscape(email))
 
-	users, err := RequestSlice[any, DataSourceUser](http.MethodGet, url, client, ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	if users[0] == nil {
-		return nil, fmt.Errorf("cannot find user with email `%s`", email)
-	}
-
-	return users[0], nil
+	return Request[any, DataSourceUser](http.MethodGet, url, client, ctx, nil)
 }
 
 func (client *Client) ListUsers(ctx context.Context) ([]*ResourceUser, error) {

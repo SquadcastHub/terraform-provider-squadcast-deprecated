@@ -41,11 +41,13 @@ func (t *Team) Encode() (tf.M, error) {
 }
 
 type TeamMember struct {
+	ID      string   `tf:"id"`
 	UserID  string   `json:"user_id" tf:"user_id"`
 	RoleIDs []string `json:"role_ids" tf:"role_ids"`
 }
 
 func (tm *TeamMember) Encode() (tf.M, error) {
+	tm.ID = tm.UserID
 	return tf.Encode(tm)
 }
 
