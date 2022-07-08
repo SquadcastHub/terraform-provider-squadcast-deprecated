@@ -114,6 +114,10 @@ func resourceSquadRead(ctx context.Context, d *schema.ResourceData, meta any) di
 	})
 	squad, err := client.GetSquadById(ctx, teamID.(string), id)
 	if err != nil {
+		if api.IsResourceNotFoundError(err) {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(err)
 	}
 

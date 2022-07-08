@@ -147,6 +147,10 @@ func resourceServiceRead(ctx context.Context, d *schema.ResourceData, meta any) 
 	})
 	service, err := client.GetServiceById(ctx, teamID.(string), id)
 	if err != nil {
+		if api.IsResourceNotFoundError(err) {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(err)
 	}
 

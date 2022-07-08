@@ -121,6 +121,10 @@ func resourceRunbookRead(ctx context.Context, d *schema.ResourceData, meta any) 
 	})
 	runbook, err := client.GetRunbookById(ctx, teamID.(string), id)
 	if err != nil {
+		if api.IsResourceNotFoundError(err) {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(err)
 	}
 

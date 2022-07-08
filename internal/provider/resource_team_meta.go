@@ -97,6 +97,10 @@ func resourceTeamRead(ctx context.Context, d *schema.ResourceData, meta any) dia
 	})
 	team, err := client.GetTeamMetaById(ctx, d.Id())
 	if err != nil {
+		if api.IsResourceNotFoundError(err) {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(err)
 	}
 

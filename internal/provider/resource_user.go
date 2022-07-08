@@ -117,6 +117,10 @@ func resourceUserRead(ctx context.Context, d *schema.ResourceData, meta any) dia
 	})
 	user, err := client.GetUserById(ctx, id)
 	if err != nil {
+		if api.IsResourceNotFoundError(err) {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(err)
 	}
 

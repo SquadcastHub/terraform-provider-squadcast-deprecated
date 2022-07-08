@@ -113,6 +113,10 @@ func resourceTeamRoleRead(ctx context.Context, d *schema.ResourceData, meta any)
 	})
 	teamRole, err := client.GetTeamRoleByID(ctx, teamID.(string), id)
 	if err != nil {
+		if api.IsResourceNotFoundError(err) {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(err)
 	}
 

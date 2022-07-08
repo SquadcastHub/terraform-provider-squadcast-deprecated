@@ -113,6 +113,10 @@ func resourceScheduleRead(ctx context.Context, d *schema.ResourceData, meta any)
 	})
 	schedule, err := client.GetScheduleById(ctx, teamID.(string), id)
 	if err != nil {
+		if api.IsResourceNotFoundError(err) {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(err)
 	}
 

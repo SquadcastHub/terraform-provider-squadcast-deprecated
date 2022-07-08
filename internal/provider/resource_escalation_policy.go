@@ -293,6 +293,10 @@ func resourceEscalationPolicyRead(ctx context.Context, d *schema.ResourceData, m
 	})
 	escalationPolicy, err := client.GetEscalationPolicyById(ctx, teamID.(string), id)
 	if err != nil {
+		if api.IsResourceNotFoundError(err) {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(err)
 	}
 
