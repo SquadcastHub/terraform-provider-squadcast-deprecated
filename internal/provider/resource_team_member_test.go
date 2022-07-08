@@ -61,6 +61,9 @@ func testAccCheckTeamMemberDestroy(s *terraform.State) error {
 			return fmt.Errorf("expected member to be deleted, but was found")
 		}
 
+		if !api.IsResourceNotFoundError(err) {
+			return err
+		}
 	}
 
 	return nil

@@ -75,6 +75,10 @@ func testAccCheckTeamRoleDestroy(s *terraform.State) error {
 		if err == nil {
 			return fmt.Errorf("expected team role to be destroyed, %s found", rs.Primary.ID)
 		}
+
+		if !api.IsResourceNotFoundError(err) {
+			return err
+		}
 	}
 
 	return nil

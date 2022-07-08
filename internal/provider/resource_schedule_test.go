@@ -63,10 +63,9 @@ func testAccCheckScheduleDestroy(s *terraform.State) error {
 			return fmt.Errorf("expected schedule to be destroyed, %s found", rs.Primary.ID)
 		}
 
-		// FIXME: check for 404 errors, any other error is not acceptable.
-		// if !err.IsNotFoundError() {
-		// 	return err
-		// }
+		if !api.IsResourceNotFoundError(err) {
+			return err
+		}
 	}
 
 	return nil
