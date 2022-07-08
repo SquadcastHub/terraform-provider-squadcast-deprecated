@@ -1,27 +1,23 @@
 package provider
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/squadcast/terraform-provider-squadcast/internal/api"
 )
 
-func TestAccResourceEscalationPolicy(t *testing.T) {
+func TestAccDataSourceEscalationPolicy(t *testing.T) {
 	escalationPolicyName := acctest.RandomWithPrefix("escalation_policy")
 
-	resourceName := "squadcast_escalation_policy.test"
+	resourceName := "data.squadcast_escalation_policy.test"
 	resource.UnitTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
-		CheckDestroy:      testAccCheckEscalationPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceEscalationPolicyConfig(escalationPolicyName),
+				Config: testAccDataSourceEscalationPolicyConfig(escalationPolicyName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "team_id", "613611c1eb22db455cfa789f"),
@@ -41,7 +37,7 @@ func TestAccResourceEscalationPolicy(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccResourceEscalationPolicyConfig_2rules(escalationPolicyName),
+				Config: testAccDataSourceEscalationPolicyConfig_2rules(escalationPolicyName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "team_id", "613611c1eb22db455cfa789f"),
@@ -72,7 +68,7 @@ func TestAccResourceEscalationPolicy(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccResourceEscalationPolicyConfig_3rules(escalationPolicyName),
+				Config: testAccDataSourceEscalationPolicyConfig_3rules(escalationPolicyName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "team_id", "613611c1eb22db455cfa789f"),
@@ -115,39 +111,11 @@ func TestAccResourceEscalationPolicy(t *testing.T) {
 					resource.TestCheckNoResourceAttr(resourceName, "rules.2.repeat.#"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateId:     "613611c1eb22db455cfa789f:" + escalationPolicyName,
-			},
 		},
 	})
 }
 
-func testAccCheckEscalationPolicyDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*api.Client)
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "squadcast_escalation_policy" {
-			continue
-		}
-
-		_, err := client.GetEscalationPolicyById(context.Background(), rs.Primary.Attributes["team_id"], rs.Primary.ID)
-		if err == nil {
-			return fmt.Errorf("expected escalation_policy to be destroyed, %s found", rs.Primary.ID)
-		}
-
-		// FIXME: check for 404 errors, any other error is not acceptable.
-		// if !err.IsNotFoundError() {
-		// 	return err
-		// }
-	}
-
-	return nil
-}
-
-func testAccResourceEscalationPolicyConfig(escalationPolicyName string) string {
+func testAccDataSourceEscalationPolicyConfig(escalationPolicyName string) string {
 	return fmt.Sprintf(`
 resource "squadcast_escalation_policy" "test" {
 	name = "%s"
@@ -174,10 +142,15 @@ resource "squadcast_escalation_policy" "test" {
         delay_minutes = 10
     }
 }
+
+data "squadcast_escalation_policy" "test" {
+	name = squadcast_escalation_policy.test.name
+	team_id = "613611c1eb22db455cfa789f"
+}
 	`, escalationPolicyName)
 }
 
-func testAccResourceEscalationPolicyConfig_2rules(escalationPolicyName string) string {
+func testAccDataSourceEscalationPolicyConfig_2rules(escalationPolicyName string) string {
 	return fmt.Sprintf(`
 resource "squadcast_escalation_policy" "test" {
 	name = "%s"
@@ -225,10 +198,15 @@ resource "squadcast_escalation_policy" "test" {
         delay_minutes = 10
     }
 }
+
+data "squadcast_escalation_policy" "test" {
+	name = squadcast_escalation_policy.test.name
+	team_id = "613611c1eb22db455cfa789f"
+}
 	`, escalationPolicyName)
 }
 
-func testAccResourceEscalationPolicyConfig_3rules(escalationPolicyName string) string {
+func testAccDataSourceEscalationPolicyConfig_3rules(escalationPolicyName string) string {
 	return fmt.Sprintf(`
 resource "squadcast_escalation_policy" "test" {
 	name = "%s"
@@ -298,6 +276,11 @@ resource "squadcast_escalation_policy" "test" {
         times = 2
         delay_minutes = 10
     }
+}
+
+data "squadcast_escalation_policy" "test" {
+	name = squadcast_escalation_policy.test.name
+	team_id = "613611c1eb22db455cfa789f"
 }
 	`, escalationPolicyName)
 }
