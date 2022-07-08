@@ -5,16 +5,19 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/squadcast/terraform-provider-squadcast/internal/testdata"
 )
 
 func TestAccDataSourceUser(t *testing.T) {
+	user := testdata.RandomUser()
+
 	resourceName := "data.squadcast_user.test"
 	resource.UnitTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccUserDataSourceConfig(),
+				Config: testAccUserDataSourceConfig(user),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "first_name", "Dheeraj"),
@@ -49,10 +52,19 @@ func TestAccDataSourceUser(t *testing.T) {
 	})
 }
 
-func testAccUserDataSourceConfig() string {
+func testAccUserDataSourceConfig(user testdata.User) string {
 	return fmt.Sprintf(`
-data "squadcast_user" "test" {
-	email = "dheeraj@squadcast.com"
+resource "squadcast_user" "test" {
+	first_name = "%s"
+	last_name = "%s"
+	email = "%s"
+	role = "stakeholder"
+
+	abilities = ["manage-billing"]
 }
-	`)
+
+data "squadcast_user" "test" {
+	email = squadcast_user.test.email
+}
+	`, user.FirstName, user.LastName, user.Email)
 }

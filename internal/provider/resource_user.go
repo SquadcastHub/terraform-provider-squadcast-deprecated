@@ -82,12 +82,19 @@ func resourceUserImport(ctx context.Context, d *schema.ResourceData, meta any) (
 func resourceUserCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)
 
+	role := d.Get("role").(string)
+	abilities := tf.ListToSlice[string](d.Get("abilities"))
+
+	if role == "stakeholder" && len(abilities) != 0 {
+		return diag.Errorf("stakeholders cannot have special abilities")
+	}
+
 	tflog.Info(ctx, "Creating user", tf.M{})
 	user, err := client.CreateUser(ctx, &api.CreateUserReq{
 		FirstName: d.Get("first_name").(string),
 		LastName:  d.Get("last_name").(string),
 		Email:     d.Get("email").(string),
-		Role:      d.Get("role").(string),
+		Role:      role,
 	})
 	if err != nil {
 		return diag.FromErr(err)
@@ -97,7 +104,7 @@ func resourceUserCreate(ctx context.Context, d *schema.ResourceData, meta any) d
 	if d.HasChange("abilities") {
 		_, err := client.UpdateUserAbilities(ctx, &api.UpdateUserAbilitiesReq{
 			UserID:    user.ID,
-			Abilities: tf.ListToSlice[string](d.Get("abilities")),
+			Abilities: abilities,
 		})
 		if err != nil {
 			return diag.FromErr(err)
@@ -134,12 +141,19 @@ func resourceUserRead(ctx context.Context, d *schema.ResourceData, meta any) dia
 func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)
 
-	if d.HasChangeExcept("role") {
-		diag.Errorf("cannot change any attribute other than `role` for user `%s`. They can be only modified by the respective user in their profile page.", d.Get("email").(string))
+	if d.HasChangesExcept("role", "abilities") {
+		diag.Errorf("cannot change any attribute other than `role` or `abilities` for user `%s`. They can be only modified by the respective user in their profile page.", d.Get("email").(string))
+	}
+
+	role := d.Get("role").(string)
+	abilities := tf.ListToSlice[string](d.Get("abilities"))
+
+	if role == "stakeholder" && len(abilities) != 0 {
+		return diag.Errorf("stakeholders cannot have special abilities")
 	}
 
 	_, err := client.UpdateUser(ctx, d.Id(), &api.UpdateUserReq{
-		Role: d.Get("role").(string),
+		Role: role,
 	})
 	if err != nil {
 		return diag.FromErr(err)
@@ -148,7 +162,7 @@ func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, meta any) d
 	if d.HasChange("abilities") {
 		_, err := client.UpdateUserAbilities(ctx, &api.UpdateUserAbilitiesReq{
 			UserID:    d.Id(),
-			Abilities: tf.ListToSlice[string](d.Get("abilities")),
+			Abilities: abilities,
 		})
 		if err != nil {
 			return diag.FromErr(err)
