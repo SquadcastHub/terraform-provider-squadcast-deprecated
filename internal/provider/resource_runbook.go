@@ -13,7 +13,7 @@ import (
 
 func resourceRunbook() *schema.Resource {
 	return &schema.Resource{
-		Description: "Runbook resource.",
+		Description: "[Squadcast Runbook](https://support.squadcast.com/docs/runbooks) is a compilation of routine procedures and operations that are documented for reference while working on a critical incident. Sometimes, it can also be referred to as a Playbook.",
 
 		CreateContext: resourceRunbookCreate,
 		ReadContext:   resourceRunbookRead,
@@ -43,7 +43,7 @@ func resourceRunbook() *schema.Resource {
 				ForceNew:     true,
 			},
 			"steps": {
-				Description: "steps.",
+				Description: "Step by Step instructions",
 				Type:        schema.TypeList,
 				Required:    true,
 				MinItems:    1,

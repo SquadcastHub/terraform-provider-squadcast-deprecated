@@ -11,7 +11,9 @@ import (
 
 func dataSourceTeam() *schema.Resource {
 	return &schema.Resource{
-		Description: "What is a squadcast team?",
+		Description: "Teams is a way for customers to represent their organizational structure in Squadcast. Each Team can be considered as an isolated workspace with their own configurations and permissions.
+		
+		Use this data source to get information about a specific Team.",
 		ReadContext: dataSourceTeamRead,
 		Schema: map[string]*schema.Schema{
 			"id": {

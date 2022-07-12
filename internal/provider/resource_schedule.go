@@ -13,7 +13,7 @@ import (
 
 func resourceSchedule() *schema.Resource {
 	return &schema.Resource{
-		Description: "Schedule resource.",
+		Description: "[Squadcast schedules](https://support.squadcast.com/docs/schedules) are used to manage on-call scheduling & determine who will be notified when an incident is triggered.",
 
 		CreateContext: resourceScheduleCreate,
 		ReadContext:   resourceScheduleRead,

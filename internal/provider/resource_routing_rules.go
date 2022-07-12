@@ -15,7 +15,7 @@ const routingRulesID = "routing_rules"
 
 func resourceRoutingRules() *schema.Resource {
 	return &schema.Resource{
-		Description: "RoutingRules resource.",
+		Description: "[Routing rules](https://support.squadcast.com/docs/alert-routing) allows you to ensure that alerts are routed to the right responder with the help of `event tags` attached to them.",
 
 		CreateContext: resourceRoutingRulesCreate,
 		ReadContext:   resourceRoutingRulesRead,

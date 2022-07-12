@@ -13,7 +13,7 @@ import (
 
 func resourceTeamRole() *schema.Resource {
 	return &schema.Resource{
-		Description: "TeamRole resource.",
+		Description: "Use this resource to manage the Team roles and their permissions",
 
 		CreateContext: resourceTeamRoleCreate,
 		ReadContext:   resourceTeamRoleRead,

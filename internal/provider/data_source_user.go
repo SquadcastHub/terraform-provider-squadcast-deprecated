@@ -13,7 +13,7 @@ import (
 
 func dataSourceUser() *schema.Resource {
 	return &schema.Resource{
-		Description: "User data source.",
+		Description: "Use this data source to get information about a specific user that you can use for other Squadcast resources.",
 
 		ReadContext: dataSourceUserRead,
 

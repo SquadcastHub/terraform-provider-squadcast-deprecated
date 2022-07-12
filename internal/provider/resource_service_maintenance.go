@@ -15,7 +15,7 @@ const serviceMaintenanceID = "service_maintenance"
 
 func resourceServiceMaintenance() *schema.Resource {
 	return &schema.Resource{
-		Description: "ServiceMaintenance resource.",
+		Description: "[Maintenance Mode](https://support.squadcast.com/docs/maintenance-mode) enables you to reduce alert noise during the scheduled maintenance window. Alerts generated during active maintenance windows would be automatically suppressed and hence, no notifications are generated for those suppressed alerts.",
 
 		CreateContext: resourceServiceMaintenanceCreate,
 		ReadContext:   resourceServiceMaintenanceRead,
