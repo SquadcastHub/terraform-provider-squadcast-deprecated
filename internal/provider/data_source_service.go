@@ -13,7 +13,7 @@ import (
 
 func dataSourceService() *schema.Resource {
 	return &schema.Resource{
-		Description: "Services are the core components of your infrastructure/application for which alerts are generated. Services in Squadcast represent specific systems, applications, components, products, or teams for which an incident is created. To check out some of the best practices on creating Services in Squadcast, refer to the guide here.
+		Description: "[Squadcast Services](https://support.squadcast.com/docs/adding-a-service-1) are the core components of your infrastructure/application for which alerts are generated. Services in Squadcast represent specific systems, applications, components, products, or teams for which an incident is created. To check out some of the best practices on creating Services in Squadcast, refer to the guide [here](https://www.squadcast.com/blog/how-to-configure-services-in-squadcast-best-practices-to-reduce-mttr).
 		Use this data source to get information about a specific service.",
 		ReadContext: dataSourceServiceRead,
 		Schema: map[string]*schema.Schema{
