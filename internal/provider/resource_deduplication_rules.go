@@ -6,8 +6,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
+	"github.com/squadcast/terraform-provider-squadcast/internal/api"
+	"github.com/squadcast/terraform-provider-squadcast/internal/tf"
 )
 
 const deduplicationRulesID = "deduplication_rules"

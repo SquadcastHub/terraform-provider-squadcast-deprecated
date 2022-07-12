@@ -11,18 +11,18 @@ import (
 	"github.com/squadcast/terraform-provider-squadcast/internal/tf"
 )
 
-func dataSourceSquad() *schema.Resource {
+func dataSourceRunbook() *schema.Resource {
 	return &schema.Resource{
-		Description: "What is a squadcast squad?",
-		ReadContext: dataSourceSquadRead,
+		Description: "What is a squadcast runbook?",
+		ReadContext: dataSourceRunbookRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Description: "Squad id.",
+				Description: "Runbook id.",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
 			"name": {
-				Description:  "Squad name.",
+				Description:  "Runbook name.",
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1000),
@@ -33,23 +33,29 @@ func dataSourceSquad() *schema.Resource {
 				Required:     true,
 				ValidateFunc: tf.ValidateObjectID,
 			},
-			"member_ids": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+			"steps": {
+				Description: "steps.",
+				Type:        schema.TypeList,
+				Computed:    true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"content": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
 				},
 			},
 		},
 	}
 }
 
-func dataSourceSquadRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourceRunbookRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)
 
 	name, ok := d.GetOk("name")
 	if !ok {
-		return diag.Errorf("invalid squad name provided")
+		return diag.Errorf("invalid runbook name provided")
 	}
 
 	teamID, ok := d.GetOk("team_id")
@@ -57,15 +63,15 @@ func dataSourceSquadRead(ctx context.Context, d *schema.ResourceData, meta any) 
 		return diag.Errorf("invalid team id provided")
 	}
 
-	tflog.Info(ctx, "Reading squad by name", tf.M{
+	tflog.Info(ctx, "Reading runbook by name", tf.M{
 		"name": name.(string),
 	})
-	squad, err := client.GetSquadByName(ctx, teamID.(string), name.(string))
+	runbook, err := client.GetRunbookByName(ctx, teamID.(string), name.(string))
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err = tf.EncodeAndSet(squad, d); err != nil {
+	if err = tf.EncodeAndSet(runbook, d); err != nil {
 		return diag.FromErr(err)
 	}
 

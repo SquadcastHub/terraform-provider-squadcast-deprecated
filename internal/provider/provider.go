@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
+	"github.com/squadcast/terraform-provider-squadcast/internal/api"
 )
 
 func init() {
@@ -37,23 +37,24 @@ func New(version string) func() *schema.Provider {
 				"squadcast_team":     dataSourceTeam(),
 				"squadcast_user":     dataSourceUser(),
 				"squadcast_schedule": dataSourceSchedule(),
+				"squadcast_runbook":  dataSourceRunbook(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
+				"squadcast_deduplication_rules": resourceDeduplicationRules(),
+				"squadcast_escalation_policy":   resourceEscalationPolicy(),
+				"squadcast_routing_rules":       resourceRoutingRules(),
+				"squadcast_runbook":             resourceRunbook(),
+				"squadcast_schedule":            resourceSchedule(),
+				"squadcast_service_maintenance": resourceServiceMaintenance(),
+				"squadcast_service":             resourceService(),
 				"squadcast_squad":               resourceSquad(),
 				"squadcast_suppression_rules":   resourceSuppressionRules(),
-				"squadcast_deduplication_rules": resourceDeduplicationRules(),
-				"squadcast_routing_rules":       resourceRoutingRules(),
 				"squadcast_tagging_rules":       resourceTaggingRules(),
-				"squadcast_service":             resourceService(),
-				"squadcast_service_maintenance": resourceServiceMaintenance(),
-				"squadcast_team":                resourceTeam(),
+				"squadcast_team_member":         resourceTeamMember(),
 				"squadcast_team_role":           resourceTeamRole(),
-				"squadcast_team_members":        resourceTeamMembers(),
+				"squadcast_team":                resourceTeam(),
 				"squadcast_user":                resourceUser(),
 				"squadcast_slo":                 resourceSlo(),
-				"squadcast_schedule":            resourceSchedule(),
-				"squadcast_escalation_policy":   resourceEscalationPolicy(),
-				"squadcast_runbook":             resourceRunbook(),
 			},
 			Schema: map[string]*schema.Schema{
 				"region": {

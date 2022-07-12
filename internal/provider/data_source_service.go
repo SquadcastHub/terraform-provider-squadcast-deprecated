@@ -7,8 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
+	"github.com/squadcast/terraform-provider-squadcast/internal/api"
+	"github.com/squadcast/terraform-provider-squadcast/internal/tf"
 )
 
 func dataSourceService() *schema.Resource {
@@ -26,7 +26,6 @@ func dataSourceService() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1000),
-				ForceNew:     true,
 			},
 			"description": {
 				Description: "Service description.",
@@ -38,7 +37,6 @@ func dataSourceService() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: tf.ValidateObjectID,
-				ForceNew:     true,
 			},
 			"escalation_policy_id": {
 				Description: "Escalation policy id.",

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
+	"github.com/squadcast/terraform-provider-squadcast/internal/tf"
 )
 
 func (client *Client) ListTeamRoles(ctx context.Context, teamID string) ([]*TeamRole, error) {
@@ -25,7 +25,7 @@ func (client *Client) GetTeamRoleByID(ctx context.Context, teamID string, id str
 			return teamRole, nil
 		}
 	}
-	return nil, fmt.Errorf("GetTeamRoleByID: could not find team role with the id: %s", id)
+	return nil, fmt.Errorf("[404] could not find team role with the id: %s", id)
 }
 
 func (client *Client) GetTeamRoleByName(ctx context.Context, teamID string, name string) (*TeamRole, error) {

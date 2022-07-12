@@ -15,7 +15,6 @@ func TestAccDataSourceSchedule(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
-		CheckDestroy:      testAccCheckScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccScheduleDataSourceConfig(scheduleName),

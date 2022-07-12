@@ -7,16 +7,16 @@ import (
 	"net/url"
 	"sort"
 
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
+	"github.com/squadcast/terraform-provider-squadcast/internal/tf"
 )
 
 type Team struct {
-	ID          string        `json:"id" tf:"id"`
-	Name        string        `json:"name" tf:"name"`
-	Description string        `json:"description" tf:"description"`
-	Default     bool          `json:"default" tf:"default"`
-	Members     []*TeamMember `json:"members" tf:"-"`
-	Roles       []*TeamRole   `json:"roles" tf:"-"`
+	ID          string            `json:"id" tf:"id"`
+	Name        string            `json:"name" tf:"name"`
+	Description string            `json:"description" tf:"description"`
+	Default     bool              `json:"default" tf:"default"`
+	Members     []*DataTeamMember `json:"members" tf:"-"`
+	Roles       []*TeamRole       `json:"roles" tf:"-"`
 }
 
 func (t *Team) Encode() (tf.M, error) {
@@ -40,12 +40,23 @@ func (t *Team) Encode() (tf.M, error) {
 	return m, nil
 }
 
+type DataTeamMember struct {
+	UserID  string   `json:"user_id" tf:"user_id"`
+	RoleIDs []string `json:"role_ids" tf:"role_ids"`
+}
+
+func (tm *DataTeamMember) Encode() (tf.M, error) {
+	return tf.Encode(tm)
+}
+
 type TeamMember struct {
+	ID      string   `tf:"id"`
 	UserID  string   `json:"user_id" tf:"user_id"`
 	RoleIDs []string `json:"role_ids" tf:"role_ids"`
 }
 
 func (tm *TeamMember) Encode() (tf.M, error) {
+	tm.ID = tm.UserID
 	return tf.Encode(tm)
 }
 

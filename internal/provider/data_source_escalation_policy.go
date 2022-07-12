@@ -7,28 +7,30 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/tf"
+	"github.com/squadcast/terraform-provider-squadcast/internal/api"
+	"github.com/squadcast/terraform-provider-squadcast/internal/tf"
 )
 
 func dataSourceEscalationPolicy() *schema.Resource {
 	return &schema.Resource{
-		Description: "What is a squadcast escalation policy?",
+		Description: "EscalationPolicy data source.",
+
 		ReadContext: dataSourceEscalationPolicyRead,
+
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Description: "Escalation policy id.",
+				Description: "EscalationPolicy id.",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
 			"name": {
-				Description:  "Escalation policy name.",
+				Description:  "EscalationPolicy name.",
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1000),
 			},
 			"description": {
-				Description: "Escalation policy description.",
+				Description: "EscalationPolicy description.",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
@@ -38,6 +40,111 @@ func dataSourceEscalationPolicy() *schema.Resource {
 				Required:     true,
 				ValidateFunc: tf.ValidateObjectID,
 			},
+			"repeat": {
+				Description: "repeat this policy",
+				Type:        schema.TypeList,
+				Computed:    true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"times": {
+							Description: "repeat times",
+							Type:        schema.TypeInt,
+							Computed:    true,
+						},
+						"delay_minutes": {
+							Description: "repeat after minutes",
+							Type:        schema.TypeInt,
+							Computed:    true,
+						},
+					},
+				},
+			},
+			"rules": {
+				Description: "rules.",
+				Type:        schema.TypeList,
+				Computed:    true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"delay_minutes": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"targets": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"type": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+						"notification_channels": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"round_robin": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Description: "enable rotation within",
+										Type:        schema.TypeBool,
+										Computed:    true,
+									},
+									"rotation": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"enabled": {
+													Description: "enable rotation within",
+													Type:        schema.TypeBool,
+													Computed:    true,
+												},
+												"delay_minutes": {
+													Description: "repeat after minutes",
+													Type:        schema.TypeInt,
+													Computed:    true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						"repeat": {
+							Description: "repeat this rule",
+							Type:        schema.TypeList,
+							Computed:    true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"times": {
+										Description: "repeat times",
+										Type:        schema.TypeInt,
+										Computed:    true,
+									},
+									"delay_minutes": {
+										Description: "repeat after minutes",
+										Type:        schema.TypeInt,
+										Computed:    true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -45,27 +152,12 @@ func dataSourceEscalationPolicy() *schema.Resource {
 func dataSourceEscalationPolicyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)
 
-	name, ok := d.GetOk("name")
-	if !ok {
-		return diag.Errorf("invalid escalation policy name provided")
-	}
-
-	teamID, ok := d.GetOk("team_id")
-	if !ok {
-		return diag.Errorf("invalid team id provided")
-	}
-
-	tflog.Info(ctx, "Reading escalation policy by name", map[string]interface{}{
-		"name": name.(string),
+	tflog.Info(ctx, "Reading escalation_policy", tf.M{
+		"name": d.Get("name").(string),
 	})
-
-	escalationPolicy, err := client.GetEscalationPolicyByName(ctx, teamID.(string), name.(string))
+	escalationPolicy, err := client.GetEscalationPolicyByName(ctx, d.Get("team_id").(string), d.Get("name").(string))
 	if err != nil {
 		return diag.FromErr(err)
-	}
-
-	if escalationPolicy.Name == "" {
-		return diag.Errorf("Unable to find escalation policy with the name %s", name)
 	}
 
 	if err = tf.EncodeAndSet(escalationPolicy, d); err != nil {

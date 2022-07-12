@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
+	"github.com/squadcast/terraform-provider-squadcast/internal/api"
 )
 
 func TestAccResourceRunbook(t *testing.T) {
@@ -52,7 +52,7 @@ func TestAccResourceRunbook(t *testing.T) {
 }
 
 func testAccCheckRunbookDestroy(s *terraform.State) error {
-	client := testProvider.Meta().(*api.Client)
+	client := testAccProvider.Meta().(*api.Client)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "squadcast_runbook" {
@@ -64,10 +64,9 @@ func testAccCheckRunbookDestroy(s *terraform.State) error {
 			return fmt.Errorf("expected runbook to be destroyed, %s found", rs.Primary.ID)
 		}
 
-		// FIXME: check for 404 errors, any other error is not acceptable.
-		// if !err.IsNotFoundError() {
-		// 	return err
-		// }
+		if !api.IsResourceNotFoundError(err) {
+			return err
+		}
 	}
 
 	return nil

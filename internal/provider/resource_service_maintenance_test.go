@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
+	"github.com/squadcast/terraform-provider-squadcast/internal/api"
 )
 
 func TestAccResourceServiceMaintenance(t *testing.T) {
@@ -56,7 +56,7 @@ func TestAccResourceServiceMaintenance(t *testing.T) {
 }
 
 func testAccCheckServiceMaintenanceDestroy(s *terraform.State) error {
-	client := testProvider.Meta().(*api.Client)
+	client := testAccProvider.Meta().(*api.Client)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "squadcast_service_maintenance" {

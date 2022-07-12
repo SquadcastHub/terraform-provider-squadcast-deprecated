@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/hashicorp/terraform-provider-squadcast/internal/api"
+	"github.com/squadcast/terraform-provider-squadcast/internal/api"
 )
 
 func TestAccResourceTeamRole(t *testing.T) {
@@ -64,7 +64,7 @@ func TestAccResourceTeamRole(t *testing.T) {
 }
 
 func testAccCheckTeamRoleDestroy(s *terraform.State) error {
-	client := testProvider.Meta().(*api.Client)
+	client := testAccProvider.Meta().(*api.Client)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "squadcast_team_role" {
@@ -74,6 +74,10 @@ func testAccCheckTeamRoleDestroy(s *terraform.State) error {
 		_, err := client.GetTeamRoleByID(context.Background(), rs.Primary.Attributes["team_id"], rs.Primary.ID)
 		if err == nil {
 			return fmt.Errorf("expected team role to be destroyed, %s found", rs.Primary.ID)
+		}
+
+		if !api.IsResourceNotFoundError(err) {
+			return err
 		}
 	}
 
