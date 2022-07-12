@@ -24,7 +24,7 @@ func dataSourceRunbook() *schema.Resource {
 				Computed:    true,
 			},
 			"name": {
-				Description:  "Runbook name.",
+				Description:  "Name of the Runbook",
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1000),
@@ -36,7 +36,7 @@ func dataSourceRunbook() *schema.Resource {
 				ValidateFunc: tf.ValidateObjectID,
 			},
 			"steps": {
-				Description: "Step by Step instructions",
+				Description: "Step by Step instructions, you can add as many steps as you want, supports markdown formatting.",
 				Type:        schema.TypeList,
 				Computed:    true,
 				Elem: &schema.Resource{

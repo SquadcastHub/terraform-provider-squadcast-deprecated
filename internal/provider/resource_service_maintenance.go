@@ -45,19 +45,19 @@ func resourceServiceMaintenance() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"from": {
-							Description:  "from",
+							Description:  "Starting Time",
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.IsRFC3339Time,
 						},
 						"till": {
-							Description:  "till.",
+							Description:  "End Time.",
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.IsRFC3339Time,
 						},
 						"repeat_till": {
-							Description:  "repeat till.",
+							Description:  "Till when you want to repeat this Maintenance mode",
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.IsRFC3339Time,

@@ -23,13 +23,13 @@ func dataSourceSchedule() *schema.Resource {
 				Computed:    true,
 			},
 			"name": {
-				Description:  "Schedule name.",
+				Description:  "Name of the Schedule.",
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1000),
 			},
 			"description": {
-				Description: "Schedule description.",
+				Description: "Detailed description about the schedule.",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},

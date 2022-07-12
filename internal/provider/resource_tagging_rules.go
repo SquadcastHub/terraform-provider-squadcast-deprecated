@@ -102,7 +102,7 @@ func resourceTaggingRules() *schema.Resource {
 										Required:    true,
 									},
 									"color": {
-										Description: "color",
+										Description: "Tag color, hex values",
 										Type:        schema.TypeString,
 										Required:    true,
 									},

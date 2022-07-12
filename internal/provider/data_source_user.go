@@ -34,7 +34,7 @@ func dataSourceUser() *schema.Resource {
 				Computed:    true,
 			},
 			"name": {
-				Description: "User name.",
+				Description: "User name, automatically computed from first name and last name.",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
@@ -45,22 +45,22 @@ func dataSourceUser() *schema.Resource {
 				ValidateFunc: validation.StringIsNotWhiteSpace,
 			},
 			"is_email_verified": {
-				Description: "User is_email_verified.",
+				Description: "Denotes if the user has verified their email or not.",
 				Type:        schema.TypeBool,
 				Computed:    true,
 			},
 			"phone": {
-				Description: "User phone.",
+				Description: "User phone number.",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
 			"is_phone_verified": {
-				Description: "User is_phone_verified.",
+				Description: "Denotes if the user has verified their phone number or not.",
 				Type:        schema.TypeBool,
 				Computed:    true,
 			},
 			"is_override_dnd_enabled": {
-				Description: "User is_override_dnd_enabled.",
+				Description: "Deprecated, this can be ignored.",
 				Type:        schema.TypeBool,
 				Computed:    true,
 			},
@@ -75,7 +75,7 @@ func dataSourceUser() *schema.Resource {
 				Computed:    true,
 			},
 			"abilities": {
-				Description: "user abilities.",
+				Description: "Denotes the Permissions / abilities of the user.",
 				Type:        schema.TypeList,
 				Computed:    true,
 				Elem: &schema.Schema{
@@ -83,18 +83,18 @@ func dataSourceUser() *schema.Resource {
 				},
 			},
 			"notification_rules": {
-				Description: "user notification_rules.",
+				Description: "User Personal Notification Rules.",
 				Type:        schema.TypeList,
 				Computed:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
-							Description: "notification rule type.",
+							Description: "Personal notification rule type.",
 							Type:        schema.TypeString,
 							Computed:    true,
 						},
 						"delay_minutes": {
-							Description: "notification rule delay_minutes.",
+							Description: "notification rule delay_minutes, (to be deprecated).",
 							Type:        schema.TypeInt,
 							Computed:    true,
 						},
@@ -102,7 +102,7 @@ func dataSourceUser() *schema.Resource {
 				},
 			},
 			"oncall_reminder_rules": {
-				Description: "user oncall_reminder_rules.",
+				Description: "User's personal on-call reminder notification rules.",
 				Type:        schema.TypeList,
 				Computed:    true,
 				Elem: &schema.Resource{

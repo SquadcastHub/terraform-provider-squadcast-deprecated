@@ -65,7 +65,7 @@ func resourceDeduplicationRules() *schema.Resource {
 							Optional:    true,
 						},
 						"dependency_deduplication": {
-							Description: "something dependency.",
+							Description: "Denotes if dependent services should also be deduplicated",
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Default:     false,

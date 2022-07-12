@@ -23,13 +23,13 @@ func dataSourceService() *schema.Resource {
 				Computed:    true,
 			},
 			"name": {
-				Description:  "Service name.",
+				Description:  "Name of the Service.",
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1000),
 			},
 			"description": {
-				Description: "Service description.",
+				Description: "Detailed description about the service.",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
@@ -50,7 +50,7 @@ func dataSourceService() *schema.Resource {
 				Computed:    true,
 			},
 			"api_key": {
-				Description: "Email prefix.",
+				Description: "Unique API key of the service",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},

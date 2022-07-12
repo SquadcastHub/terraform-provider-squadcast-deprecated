@@ -30,13 +30,13 @@ func resourceSchedule() *schema.Resource {
 				Computed:    true,
 			},
 			"name": {
-				Description:  "Schedule name.",
+				Description:  "Name of the Schedule.",
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1000),
 			},
 			"description": {
-				Description:  "Schedule description.",
+				Description:  "Detailed description about the Schedule.",
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1000),

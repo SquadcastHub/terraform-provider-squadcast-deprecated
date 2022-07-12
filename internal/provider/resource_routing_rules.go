@@ -61,13 +61,13 @@ func resourceRoutingRules() *schema.Resource {
 							Optional:    true,
 						},
 						"route_to_id": {
-							Description:  "route to entity id.",
+							Description:  "The id of the entity (user, escalation policy, squad) for which we are routing this incident.",
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: tf.ValidateObjectID,
 						},
 						"route_to_type": {
-							Description:  "route to type.",
+							Description:  "Type of the entity for which we are routing this incident - User, Escalation Policy or Squad",
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringInSlice([]string{"user", "escalationpolicy", "squad"}, false),

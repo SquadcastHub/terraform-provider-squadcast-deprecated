@@ -22,17 +22,17 @@ func dataSourceTeam() *schema.Resource {
 				Computed:    true,
 			},
 			"name": {
-				Description: "Team name.",
+				Description: "Name of the Team.",
 				Type:        schema.TypeString,
 				Required:    true,
 			},
 			"description": {
-				Description: "Team description.",
+				Description: "Detailed description about the Team.",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
 			"default": {
-				Description: "Team is default?.",
+				Description: "Squadcast has one default team and this field let's us know if this is the default team.",
 				Type:        schema.TypeBool,
 				Computed:    true,
 			},

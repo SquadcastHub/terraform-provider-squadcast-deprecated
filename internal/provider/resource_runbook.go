@@ -30,7 +30,7 @@ func resourceRunbook() *schema.Resource {
 				Computed:    true,
 			},
 			"name": {
-				Description:  "Runbook name.",
+				Description:  "Name of the Runbook.",
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1000),
@@ -43,7 +43,7 @@ func resourceRunbook() *schema.Resource {
 				ForceNew:     true,
 			},
 			"steps": {
-				Description: "Step by Step instructions",
+				Description: "Step by Step instructions, you can add as many steps as you want, supports markdown formatting.",
 				Type:        schema.TypeList,
 				Required:    true,
 				MinItems:    1,
