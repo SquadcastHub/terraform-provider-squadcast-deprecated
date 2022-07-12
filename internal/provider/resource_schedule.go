@@ -49,7 +49,7 @@ func resourceSchedule() *schema.Resource {
 				ForceNew:     true,
 			},
 			"color": {
-				Description: "color.",
+				Description: "Calendar color scheme for this schedule, hex values.",
 				Type:        schema.TypeString,
 				Required:    true,
 			},
