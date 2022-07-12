@@ -126,15 +126,15 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 		}
 		client.AccessToken = token.AccessToken
 
-		// org, err := client.GetCurrentOrganization(ctx)
-		// if err != nil {
-		// 	return nil, append(diags, diag.Diagnostic{
-		// 		Severity: diag.Error,
-		// 		Summary:  "An error occurred while fetching the organization.",
-		// 		Detail:   err.Error(),
-		// 	})
-		// }
-		// client.OrganizationID = org.ID
+		org, err := client.GetCurrentOrganization(ctx)
+		if err != nil {
+			return nil, append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "An error occurred while fetching the organization.",
+				Detail:   err.Error(),
+			})
+		}
+		client.OrganizationID = org.ID
 
 		return client, nil
 	}

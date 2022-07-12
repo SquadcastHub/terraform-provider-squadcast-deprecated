@@ -154,5 +154,3 @@ func (client *Client) DeleteSlo(ctx context.Context, orgID, ownerID, sloID strin
 	url := fmt.Sprintf("%s/slo/%s?owner_type=team&owner_id=%s", client.BaseURLV3, sloID, ownerID)
 	return Request[any, any](http.MethodDelete, url, client, ctx, nil)
 }
-
-// 611262fcd5b4ea846b534a8a
