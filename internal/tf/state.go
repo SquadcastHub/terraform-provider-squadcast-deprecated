@@ -9,11 +9,12 @@ import (
 func SetState(d *schema.ResourceData, m map[string]any) error {
 	id, ok := m["id"].(string)
 	if !ok {
-		sloID, ok := m["id"].(uint)
+		// if resource ID is an integer
+		idInt, ok := m["id"].(uint)
 		if !ok {
 			return fmt.Errorf("invalid id")
 		}
-		d.SetId(fmt.Sprint(sloID))
+		d.SetId(fmt.Sprint(idInt))
 	} else {
 		d.SetId(id)
 	}
