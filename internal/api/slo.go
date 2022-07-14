@@ -35,8 +35,6 @@ type SloMonitoringCheck struct {
 	SloID     int64  `json:"slo_id,omitempty" tf:"slo_id"`
 	Name      string `json:"name" tf:"name"`
 	Threshold int    `json:"threshold" tf:"threshold"`
-	OwnerType string `json:"owner_type" tf:"owner_type"`
-	OwnerID   string `json:"owner_id" tf:"team_id"`
 	IsChecked bool   `json:"is_checked" tf:"is_checked"`
 }
 
@@ -47,8 +45,6 @@ type SloAction struct {
 	UserID    string `json:"user_id" tf:"user_id"`
 	SquadID   string `json:"squad_id" tf:"squad_id"`
 	ServiceID string `json:"service_id" tf:"service_id"`
-	OwnerType string `json:"owner_type" tf:"owner_type"`
-	OwnerID   string `json:"owner_id" tf:"team_id"`
 }
 
 type SloNotify struct {
@@ -57,8 +53,6 @@ type SloNotify struct {
 	UserIDs   []string `json:"user_ids" tf:"user_ids"`
 	SquadIDs  []string `json:"squad_ids" tf:"squad_ids"`
 	ServiceID string   `json:"service_id" tf:"service_id"`
-	OwnerType string   `json:"owner_type" tf:"owner_type"`
-	OwnerID   string   `json:"owner_id" tf:"team_id"`
 }
 
 func (c *SloMonitoringCheck) Encode() (map[string]interface{}, error) {
@@ -100,8 +94,6 @@ func (r *Slo) Encode() (map[string]interface{}, error) {
 
 	if len(r.SloActions) > 0 {
 		notify[0].SloID = int64(r.ID)
-		notify[0].OwnerID = r.OwnerID
-		notify[0].OwnerType = r.OwnerType
 	}
 
 	notifyObj, err := tf.EncodeSlice(notify)
