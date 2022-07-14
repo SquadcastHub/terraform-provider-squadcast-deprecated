@@ -125,7 +125,8 @@ func resourceSlo() *schema.Resource {
 						"owner_type": {
 							Description: "SLO owner type",
 							Type:        schema.TypeString,
-							Computed:    true,
+							Optional:    true,
+							Default:     "team",
 						},
 						"team_id": {
 							Description: "Team id.",
@@ -141,6 +142,7 @@ func resourceSlo() *schema.Resource {
 					"User can either choose to create an incident or get alerted via email",
 				Type:     schema.TypeList,
 				MaxItems: 1,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -153,7 +155,7 @@ func resourceSlo() *schema.Resource {
 							Type:        schema.TypeInt,
 							Computed:    true,
 						},
-						"users": {
+						"user_ids": {
 							Description: "List of user ID's who should be alerted via email.",
 							Type:        schema.TypeList,
 							Elem: &schema.Schema{
@@ -161,7 +163,7 @@ func resourceSlo() *schema.Resource {
 							},
 							Optional: true,
 						},
-						"squads": {
+						"squad_ids": {
 							Description: "List of Squad ID's who should be alerted via email.",
 							Type:        schema.TypeList,
 							Elem: &schema.Schema{
@@ -169,7 +171,7 @@ func resourceSlo() *schema.Resource {
 							},
 							Optional: true,
 						},
-						"service": {
+						"service_id": {
 							Description:  "The ID of the service in which the user want to create an incident",
 							Type:         schema.TypeString,
 							Optional:     true,
@@ -178,7 +180,8 @@ func resourceSlo() *schema.Resource {
 						"owner_type": {
 							Description: "The Owner type",
 							Type:        schema.TypeString,
-							Computed:    true,
+							Optional:    true,
+							Default:     "team",
 						},
 						"team_id": {
 							Description: "Team ID.",
@@ -187,7 +190,6 @@ func resourceSlo() *schema.Resource {
 						},
 					},
 				},
-				Optional: true,
 			},
 			"owner_type": {
 				Description: "Owner type",
@@ -200,6 +202,7 @@ func resourceSlo() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: tf.ValidateObjectID,
+				ForceNew:     true,
 			},
 			"org_id": {
 				Description:  "The organization ID.",
@@ -395,7 +398,7 @@ func formatRulesAndNotify(rules []*api.SloMonitoringCheck, notify []*api.SloNoti
 		alert.SloID = sloID
 	}
 
-	for _, userID := range notify[0].Users {
+	for _, userID := range notify[0].UserIDs {
 		user := &api.SloAction{
 			Type:   "USER",
 			UserID: userID,
@@ -404,7 +407,7 @@ func formatRulesAndNotify(rules []*api.SloMonitoringCheck, notify []*api.SloNoti
 		sloActions = append(sloActions, user)
 	}
 
-	for _, squadID := range notify[0].Squads {
+	for _, squadID := range notify[0].SquadIDs {
 		user := &api.SloAction{
 			Type:   "SQUAD",
 			UserID: squadID,
@@ -413,10 +416,10 @@ func formatRulesAndNotify(rules []*api.SloMonitoringCheck, notify []*api.SloNoti
 		sloActions = append(sloActions, user)
 	}
 
-	if notify[0].Service != "" {
+	if notify[0].ServiceID != "" {
 		service := &api.SloAction{
 			Type:   "SERVICE",
-			UserID: notify[0].Service,
+			UserID: notify[0].ServiceID,
 			SloID:  sloID,
 		}
 		sloActions = append(sloActions, service)

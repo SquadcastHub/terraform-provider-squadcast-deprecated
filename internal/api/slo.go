@@ -54,9 +54,9 @@ type SloAction struct {
 type SloNotify struct {
 	ID        uint     `json:"id,omitempty" tf:"id"`
 	SloID     int64    `json:"slo_id,omitempty" tf:"slo_id"`
-	Users     []string `json:"users" tf:"users"`
-	Squads    []string `json:"squads" tf:"squads"`
-	Service   string   `json:"service" tf:"service"`
+	UserIDs   []string `json:"user_ids" tf:"user_ids"`
+	SquadIDs  []string `json:"squad_ids" tf:"squad_ids"`
+	ServiceID string   `json:"service_id" tf:"service_id"`
 	OwnerType string   `json:"owner_type" tf:"owner_type"`
 	OwnerID   string   `json:"owner_id" tf:"team_id"`
 }
@@ -88,13 +88,13 @@ func (r *Slo) Encode() (map[string]interface{}, error) {
 
 	for _, n := range r.SloActions {
 		if n.UserID != "" {
-			notify[0].Users = append(notify[0].Users, n.UserID)
+			notify[0].UserIDs = append(notify[0].UserIDs, n.UserID)
 		}
 		if n.SquadID != "" {
-			notify[0].Squads = append(notify[0].Squads, n.SquadID)
+			notify[0].SquadIDs = append(notify[0].SquadIDs, n.SquadID)
 		}
 		if n.ServiceID != "" {
-			notify[0].Service = n.ServiceID
+			notify[0].ServiceID = n.ServiceID
 		}
 	}
 

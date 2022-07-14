@@ -34,12 +34,12 @@ func TestAccResourceSlo(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "slis.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "slis.0", "latency"),
 					resource.TestCheckResourceAttr(resourceName, "notify.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "notify.0.users.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "notify.0.users.0", "5e1c2309342445001180f9c2"),
+					resource.TestCheckResourceAttr(resourceName, "notify.0.user_ids.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "notify.0.user_ids.0", "5e1c2309342445001180f9c2"),
 					resource.TestCheckResourceAttr(resourceName, "rules.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "rules.0.name", "breached_error_budget"),
-					resource.TestCheckResourceAttr(resourceName, "rules.1.name", "remaining_error_budget"),
-					resource.TestCheckResourceAttr(resourceName, "rules.1.threshold", "10"),
+					resource.TestCheckResourceAttr(resourceName, "rules.1.name", "unhealthy_slo"),
+					resource.TestCheckResourceAttr(resourceName, "rules.1.threshold", "1"),
 					resource.TestCheckResourceAttr(resourceName, "team_id", "611262fcd5b4ea846b534a8a"),
 					resource.TestCheckResourceAttr(resourceName, "org_id", "604592dabc35ea0008bb0584"),
 				),
@@ -59,15 +59,15 @@ func TestAccResourceSlo(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "slis.0", "latency"),
 					resource.TestCheckResourceAttr(resourceName, "slis.1", "high-err-rate"),
 					resource.TestCheckResourceAttr(resourceName, "notify.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "notify.0.users.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "notify.0.users.0", "5e1c2309342445001180f9c2"),
-					resource.TestCheckResourceAttr(resourceName, "notify.0.users.1", "617793e650d38001057faaaf"),
+					resource.TestCheckResourceAttr(resourceName, "notify.0.user_ids.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "notify.0.user_ids.0", "5e1c2309342445001180f9c2"),
+					resource.TestCheckResourceAttr(resourceName, "notify.0.user_ids.1", "617793e650d38001057faaaf"),
 					resource.TestCheckResourceAttr(resourceName, "rules.#", "3"),
 					resource.TestCheckResourceAttr(resourceName, "rules.0.name", "breached_error_budget"),
-					resource.TestCheckResourceAttr(resourceName, "rules.1.name", "remaining_error_budget"),
-					resource.TestCheckResourceAttr(resourceName, "rules.1.threshold", "11"),
-					resource.TestCheckResourceAttr(resourceName, "rules.2.name", "unhealthy_slo"),
-					resource.TestCheckResourceAttr(resourceName, "rules.2.threshold", "1"),
+					resource.TestCheckResourceAttr(resourceName, "rules.1.name", "unhealthy_slo"),
+					resource.TestCheckResourceAttr(resourceName, "rules.1.threshold", "2"),
+					resource.TestCheckResourceAttr(resourceName, "rules.2.name", "remaining_error_budget"),
+					resource.TestCheckResourceAttr(resourceName, "rules.2.threshold", "11"),
 					resource.TestCheckResourceAttr(resourceName, "team_id", "611262fcd5b4ea846b534a8a"),
 					resource.TestCheckResourceAttr(resourceName, "org_id", "604592dabc35ea0008bb0584"),
 				),
@@ -109,15 +109,14 @@ resource "squadcast_slo" "test" {
 	}
 	
 	rules {
-		name = "remaining_error_budget"
-		threshold = 10
+		name = "unhealthy_slo"
+		threshold = 1
 	}
 
 	notify {
-		users = ["5e1c2309342445001180f9c2"]
+		user_ids = ["5e1c2309342445001180f9c2"]
 	}
 	
-	owner_type="team"
 	team_id = "611262fcd5b4ea846b534a8a"
 }
 	`, sloName)
@@ -139,22 +138,22 @@ resource "squadcast_slo" "test" {
 	rules {
 		name = "breached_error_budget"
 	}
+
+	rules {
+		name = "unhealthy_slo"
+		threshold = 2
+	}
 	
 	rules {
 		name = "remaining_error_budget"
 		threshold = 11
 	}
 
-	rules {
-		name = "unhealthy_slo"
-		threshold = 1
-	}
 	
 	notify {
-		users = ["5e1c2309342445001180f9c2", "617793e650d38001057faaaf"]
+		user_ids = ["5e1c2309342445001180f9c2", "617793e650d38001057faaaf"]
 	}
 
-	owner_type="team"
 	team_id = "611262fcd5b4ea846b534a8a"
 }
 	`, sloName)
