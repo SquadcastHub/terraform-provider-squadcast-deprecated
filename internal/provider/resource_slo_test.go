@@ -30,18 +30,17 @@ func TestAccResourceSlo(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "duration_in_days", "30"),
 					resource.TestCheckResourceAttr(resourceName, "time_interval_type", "rolling"),
 					resource.TestCheckResourceAttr(resourceName, "service_ids.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "service_ids.0", "615d3e23aff6885f46d291be"),
+					resource.TestCheckResourceAttr(resourceName, "service_ids.0", "6257a8eb3c8ff45615ce5f2e"),
 					resource.TestCheckResourceAttr(resourceName, "slis.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "slis.0", "latency"),
 					resource.TestCheckResourceAttr(resourceName, "notify.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "notify.0.user_ids.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "notify.0.user_ids.0", "5e1c2309342445001180f9c2"),
+					resource.TestCheckResourceAttr(resourceName, "notify.0.user_ids.0", "6113b0ffe4d98ae048c37010"),
 					resource.TestCheckResourceAttr(resourceName, "rules.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "rules.0.name", "breached_error_budget"),
 					resource.TestCheckResourceAttr(resourceName, "rules.1.name", "unhealthy_slo"),
 					resource.TestCheckResourceAttr(resourceName, "rules.1.threshold", "1"),
-					resource.TestCheckResourceAttr(resourceName, "team_id", "611262fcd5b4ea846b534a8a"),
-					resource.TestCheckResourceAttr(resourceName, "org_id", "604592dabc35ea0008bb0584"),
+					resource.TestCheckResourceAttr(resourceName, "team_id", "61443b953ffd52818bf1616a"),
 				),
 			},
 			{
@@ -54,22 +53,21 @@ func TestAccResourceSlo(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "duration_in_days", "7"),
 					resource.TestCheckResourceAttr(resourceName, "time_interval_type", "rolling"),
 					resource.TestCheckResourceAttr(resourceName, "service_ids.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "service_ids.0", "615d3e23aff6885f46d291be"),
+					resource.TestCheckResourceAttr(resourceName, "service_ids.0", "6257a8eb3c8ff45615ce5f2e"),
 					resource.TestCheckResourceAttr(resourceName, "slis.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "slis.0", "latency"),
 					resource.TestCheckResourceAttr(resourceName, "slis.1", "high-err-rate"),
 					resource.TestCheckResourceAttr(resourceName, "notify.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "notify.0.user_ids.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "notify.0.user_ids.0", "5e1c2309342445001180f9c2"),
-					resource.TestCheckResourceAttr(resourceName, "notify.0.user_ids.1", "617793e650d38001057faaaf"),
+					resource.TestCheckResourceAttr(resourceName, "notify.0.user_ids.0", "6113b0ffe4d98ae048c37010"),
+					resource.TestCheckResourceAttr(resourceName, "notify.0.user_ids.1", "61305a78127c63c6d2c8f746"),
 					resource.TestCheckResourceAttr(resourceName, "rules.#", "3"),
 					resource.TestCheckResourceAttr(resourceName, "rules.0.name", "breached_error_budget"),
 					resource.TestCheckResourceAttr(resourceName, "rules.1.name", "unhealthy_slo"),
 					resource.TestCheckResourceAttr(resourceName, "rules.1.threshold", "2"),
 					resource.TestCheckResourceAttr(resourceName, "rules.2.name", "remaining_error_budget"),
 					resource.TestCheckResourceAttr(resourceName, "rules.2.threshold", "11"),
-					resource.TestCheckResourceAttr(resourceName, "team_id", "611262fcd5b4ea846b534a8a"),
-					resource.TestCheckResourceAttr(resourceName, "org_id", "604592dabc35ea0008bb0584"),
+					resource.TestCheckResourceAttr(resourceName, "team_id", "61443b953ffd52818bf1616a"),
 				),
 			},
 		},
@@ -83,7 +81,7 @@ func testAccCheckSloDestroy(s *terraform.State) error {
 			continue
 		}
 
-		slo, _ := client.GetSlo(context.Background(), rs.Primary.Attributes["org_id"], rs.Primary.Attributes["id"], rs.Primary.Attributes["team_id"])
+		slo, _ := client.GetSlo(context.Background(), client.OrganizationID, rs.Primary.Attributes["id"], rs.Primary.Attributes["team_id"])
 		if slo != nil {
 			return fmt.Errorf("expected slo to be destroyed, %s found", slo.Name)
 		}
@@ -98,11 +96,10 @@ resource "squadcast_slo" "test" {
 	name = "%s"
 	description = "Tracks some slo for some service"
 	target_slo = 99.9
-	service_ids = ["615d3e23aff6885f46d291be"]
+	service_ids = ["6257a8eb3c8ff45615ce5f2e"]
 	slis = ["latency"]
 	time_interval_type = "rolling"
 	duration_in_days = 30
-	org_id = "604592dabc35ea0008bb0584"
 
 	rules {
 		name = "breached_error_budget"
@@ -114,10 +111,10 @@ resource "squadcast_slo" "test" {
 	}
 
 	notify {
-		user_ids = ["5e1c2309342445001180f9c2"]
+		user_ids = ["6113b0ffe4d98ae048c37010"]
 	}
 	
-	team_id = "611262fcd5b4ea846b534a8a"
+	team_id = "61443b953ffd52818bf1616a"
 }
 	`, sloName)
 }
@@ -129,11 +126,10 @@ resource "squadcast_slo" "test" {
 	name = "%s"
 	description = "Tracks some slo for some test service"
 	target_slo = 99.99
-	service_ids = ["615d3e23aff6885f46d291be"]
+	service_ids = ["6257a8eb3c8ff45615ce5f2e"]
 	slis = ["latency","high-err-rate"]
 	time_interval_type = "rolling"
 	duration_in_days = 7
-	org_id = "604592dabc35ea0008bb0584"
 
 	rules {
 		name = "breached_error_budget"
@@ -151,10 +147,10 @@ resource "squadcast_slo" "test" {
 
 	
 	notify {
-		user_ids = ["5e1c2309342445001180f9c2", "617793e650d38001057faaaf"]
+		user_ids = ["6113b0ffe4d98ae048c37010", "61305a78127c63c6d2c8f746"]
 	}
 
-	team_id = "611262fcd5b4ea846b534a8a"
+	team_id = "61443b953ffd52818bf1616a"
 }
 	`, sloName)
 }

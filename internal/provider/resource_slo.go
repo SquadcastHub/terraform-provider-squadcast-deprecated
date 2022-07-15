@@ -169,24 +169,12 @@ func resourceSlo() *schema.Resource {
 					},
 				},
 			},
-			"owner_type": {
-				Description: "Owner type",
-				Type:        schema.TypeString,
-				Optional:    true,
-				Default:     "team",
-			},
 			"team_id": {
 				Description:  "The team which SLO resource belongs to",
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: tf.ValidateObjectID,
 				ForceNew:     true,
-			},
-			"org_id": {
-				Description:  "The organization ID.",
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: tf.ValidateObjectID,
 			},
 		},
 	}
@@ -219,7 +207,6 @@ func resourceSloCreate(ctx context.Context, d *schema.ResourceData, meta any) di
 	}
 
 	ownerID := d.Get("team_id").(string)
-	ownerType := "team"
 
 	sloActions = formatRulesAndNotify(rules, notify, 0)
 
@@ -227,9 +214,7 @@ func resourceSloCreate(ctx context.Context, d *schema.ResourceData, meta any) di
 		"name": d.Get("name").(string),
 	})
 
-	orgID := d.Get("org_id").(string)
-
-	slo, err := client.CreateSlo(ctx, orgID, ownerID, &api.Slo{
+	slo, err := client.CreateSlo(ctx, client.OrganizationID, ownerID, &api.Slo{
 		Name:                d.Get("name").(string),
 		Description:         d.Get("description").(string),
 		TargetSlo:           d.Get("target_slo").(float64),
@@ -241,7 +226,6 @@ func resourceSloCreate(ctx context.Context, d *schema.ResourceData, meta any) di
 		EndTime:             d.Get("end_time").(string),
 		SloMonitoringChecks: rules,
 		SloActions:          sloActions,
-		OwnerType:           ownerType,
 		OwnerID:             ownerID,
 	})
 	if err != nil {
@@ -255,11 +239,6 @@ func resourceSloCreate(ctx context.Context, d *schema.ResourceData, meta any) di
 
 func resourceSloRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*api.Client)
-
-	orgID, ok := d.GetOk("org_id")
-	if !ok {
-		return diag.Errorf("invalid org id provided")
-	}
 
 	sloID, ok := d.GetOk("id")
 	if !ok {
@@ -276,7 +255,7 @@ func resourceSloRead(ctx context.Context, d *schema.ResourceData, meta any) diag
 		"team_id": d.Get("team_id").(string),
 	})
 
-	slo, err := client.GetSlo(ctx, orgID.(string), teamID.(string), sloID.(string))
+	slo, err := client.GetSlo(ctx, client.OrganizationID, teamID.(string), sloID.(string))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -310,7 +289,6 @@ func resourceSloUpdate(ctx context.Context, d *schema.ResourceData, meta any) di
 
 	sloID, _ := strconv.ParseInt(d.Id(), 10, 32)
 	ownerID := d.Get("team_id").(string)
-	ownerType := "team"
 
 	sloActions = formatRulesAndNotify(rules, notify, sloID)
 
@@ -318,14 +296,13 @@ func resourceSloUpdate(ctx context.Context, d *schema.ResourceData, meta any) di
 		"name": d.Get("name").(string),
 	})
 
-	orgID := d.Get("org_id").(string)
 	id := d.Id()
 
 	tflog.Info(ctx, "Updating Slos", map[string]interface{}{
 		"name": d.Get("name").(string),
 	})
 
-	_, err = client.UpdateSlo(ctx, orgID, ownerID, id, &api.Slo{
+	_, err = client.UpdateSlo(ctx, client.OrganizationID, ownerID, id, &api.Slo{
 		Name:                d.Get("name").(string),
 		Description:         d.Get("description").(string),
 		TargetSlo:           d.Get("target_slo").(float64),
@@ -337,7 +314,6 @@ func resourceSloUpdate(ctx context.Context, d *schema.ResourceData, meta any) di
 		EndTime:             d.Get("end_time").(string),
 		SloMonitoringChecks: rules,
 		SloActions:          sloActions,
-		OwnerType:           ownerType,
 		OwnerID:             ownerID,
 	})
 	if err != nil {
@@ -359,7 +335,7 @@ func resourceSloDelete(ctx context.Context, d *schema.ResourceData, meta any) di
 		return diag.Errorf("invalid team id")
 	}
 
-	_, err := client.DeleteSlo(ctx, d.Get("org_id").(string), teamID.(string), d.Id())
+	_, err := client.DeleteSlo(ctx, client.OrganizationID, teamID.(string), d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}

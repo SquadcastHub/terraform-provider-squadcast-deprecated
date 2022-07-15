@@ -26,7 +26,6 @@ type Slo struct {
 	DurationInDays      int                   `json:"duration_in_days,omitempty" tf:"duration_in_days"`
 	SloMonitoringChecks []*SloMonitoringCheck `json:"slo_monitoring_checks" tf:"rules"`
 	SloActions          []*SloAction          `json:"slo_actions" tf:"notify"`
-	OwnerType           string                `json:"owner_type" tf:"owner_type"`
 	OwnerID             string                `json:"owner_id" tf:"team_id"`
 }
 
