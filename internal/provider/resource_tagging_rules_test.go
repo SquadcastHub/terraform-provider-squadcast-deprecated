@@ -5,12 +5,22 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/squadcast/terraform-provider-squadcast/internal/api"
+	"github.com/squadcast/terraform-provider-squadcast/internal/testdata"
+	"github.com/squadcast/terraform-provider-squadcast/internal/tf"
 )
 
 func TestAccResourceTaggingRules(t *testing.T) {
+	teamName := acctest.RandomWithPrefix("test-team")
+	user := testdata.RandomUser()
+	epName := acctest.RandomWithPrefix("test-ep")
+	serviceName := acctest.RandomWithPrefix("test-service")
+
+	teamResourceName := "squadcast_team.test"
+	serviceResourceName := "squadcast_service.test"
 	resourceName := "squadcast_tagging_rules.test"
 	resource.UnitTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -18,7 +28,7 @@ func TestAccResourceTaggingRules(t *testing.T) {
 		CheckDestroy:      testAccCheckTaggingRulesDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceTaggingRulesConfig(),
+				Config: testAccResourceTaggingRulesConfig(teamName, user, epName, serviceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "rules.#", "1"),
@@ -28,12 +38,12 @@ func TestAccResourceTaggingRules(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "rules.0.tags.0.key", "MyTag"),
 					resource.TestCheckResourceAttr(resourceName, "rules.0.tags.0.value", "foo"),
 					resource.TestCheckResourceAttr(resourceName, "rules.0.tags.0.color", "#ababab"),
-					resource.TestCheckResourceAttr(resourceName, "team_id", "613611c1eb22db455cfa789f"),
-					resource.TestCheckResourceAttr(resourceName, "service_id", "61361611c2fc70c3101ca7dd"),
+					resource.TestCheckResourceAttrPair(resourceName, "team_id", teamResourceName, "id"),
+					resource.TestCheckResourceAttrPair(resourceName, "service_id", serviceResourceName, "id"),
 				),
 			},
 			{
-				Config: testAccResourceTaggingRulesConfig_updateRules(),
+				Config: testAccResourceTaggingRulesConfig_updateRules(teamName, user, epName, serviceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "rules.#", "2"),
@@ -57,8 +67,8 @@ func TestAccResourceTaggingRules(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "rules.1.tags.1.key", "MyTag2"),
 					resource.TestCheckResourceAttr(resourceName, "rules.1.tags.1.value", "bar"),
 					resource.TestCheckResourceAttr(resourceName, "rules.1.tags.1.color", "#f0f0f0"),
-					resource.TestCheckResourceAttr(resourceName, "team_id", "613611c1eb22db455cfa789f"),
-					resource.TestCheckResourceAttr(resourceName, "service_id", "61361611c2fc70c3101ca7dd"),
+					resource.TestCheckResourceAttrPair(resourceName, "team_id", teamResourceName, "id"),
+					resource.TestCheckResourceAttrPair(resourceName, "service_id", serviceResourceName, "id"),
 				),
 			},
 			{
@@ -66,6 +76,19 @@ func TestAccResourceTaggingRules(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateId:     "613611c1eb22db455cfa789f:61361611c2fc70c3101ca7dd",
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					teamID, err := tf.StateAttr(s, "squadcast_team", "id")
+					if err != nil {
+						return "", err
+					}
+
+					serviceID, err := tf.StateAttr(s, "squadcast_service", "id")
+					if err != nil {
+						return "", err
+					}
+
+					return teamID + ":" + serviceID, nil
+				},
 			},
 		},
 	})
@@ -92,11 +115,52 @@ func testAccCheckTaggingRulesDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccResourceTaggingRulesConfig() string {
+func testAccResourceTaggingRulesConfig(teamName string, user testdata.User, epName, serviceName string) string {
 	return fmt.Sprintf(`
+resource "squadcast_team" "test" {
+	name = "%s"
+}
+
+resource "squadcast_user" "test" {
+	first_name = "%s"
+	last_name = "%s"
+	email = "%s"
+	role = "user"
+}
+
+resource "squadcast_team_member" "test" {
+	team_id = squadcast_team.test.id
+	user_id = squadcast_user.test.id
+	role_ids = [
+		squadcast_team.test.default_role_ids.admin,
+	]
+}
+
+resource "squadcast_escalation_policy" "test" {
+	name = "%s"
+
+	team_id = squadcast_team.test.id
+
+	rules {
+		delay_minutes = 0
+
+		targets {
+			id = squadcast_user.test.id
+			type = "user"
+		}
+	}
+}
+
+resource "squadcast_service" "test" {
+	name = "%s"
+	team_id = squadcast_team.test.id
+	escalation_policy_id = squadcast_escalation_policy.test.id
+	email_prefix = "testfoo"
+}
+
 resource "squadcast_tagging_rules" "test" {
-	team_id = "613611c1eb22db455cfa789f"
-	service_id = "61361611c2fc70c3101ca7dd"
+	team_id = squadcast_team.test.id
+	service_id = squadcast_service.test.id
 
 	rules {
 		is_basic = false
@@ -109,14 +173,55 @@ resource "squadcast_tagging_rules" "test" {
 		}
 	}
 }
-	`)
+	`, teamName, user.FirstName, user.LastName, user.Email, epName, serviceName)
 }
 
-func testAccResourceTaggingRulesConfig_updateRules() string {
+func testAccResourceTaggingRulesConfig_updateRules(teamName string, user testdata.User, epName, serviceName string) string {
 	return fmt.Sprintf(`
+resource "squadcast_team" "test" {
+	name = "%s"
+}
+
+resource "squadcast_user" "test" {
+	first_name = "%s"
+	last_name = "%s"
+	email = "%s"
+	role = "user"
+}
+
+resource "squadcast_team_member" "test" {
+	team_id = squadcast_team.test.id
+	user_id = squadcast_user.test.id
+	role_ids = [
+		squadcast_team.test.default_role_ids.admin,
+	]
+}
+
+resource "squadcast_escalation_policy" "test" {
+	name = "%s"
+
+	team_id = squadcast_team.test.id
+
+	rules {
+		delay_minutes = 0
+
+		targets {
+			id = squadcast_user.test.id
+			type = "user"
+		}
+	}
+}
+
+resource "squadcast_service" "test" {
+	name = "%s"
+	team_id = squadcast_team.test.id
+	escalation_policy_id = squadcast_escalation_policy.test.id
+	email_prefix = "testfoo"
+}
+
 resource "squadcast_tagging_rules" "test" {
-	team_id = "613611c1eb22db455cfa789f"
-	service_id = "61361611c2fc70c3101ca7dd"
+	team_id = squadcast_team.test.id
+	service_id = squadcast_service.test.id
 
 	rules {
 		is_basic = false
@@ -151,5 +256,5 @@ resource "squadcast_tagging_rules" "test" {
 		}
 	}
 }
-	`)
+	`, teamName, user.FirstName, user.LastName, user.Email, epName, serviceName)
 }

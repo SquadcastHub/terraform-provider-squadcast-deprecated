@@ -5,12 +5,20 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/squadcast/terraform-provider-squadcast/internal/api"
+	"github.com/squadcast/terraform-provider-squadcast/internal/testdata"
+	"github.com/squadcast/terraform-provider-squadcast/internal/tf"
 )
 
 func TestAccResourceTeamMember(t *testing.T) {
+	teamName := acctest.RandomWithPrefix("test-team")
+	user := testdata.RandomUser()
+
+	teamResourceName := "squadcast_team.test"
+	userResourceName := "squadcast_user.test"
 	resourceName := "squadcast_team_member.test"
 	resource.UnitTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -18,31 +26,38 @@ func TestAccResourceTeamMember(t *testing.T) {
 		CheckDestroy:      testAccCheckTeamMemberDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceTeamMemberConfig(),
+				Config: testAccResourceTeamMemberConfig(teamName, user),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttr(resourceName, "team_id", "629a2f542e0a6e82f408f280"),
-					resource.TestCheckResourceAttr(resourceName, "user_id", "5f8891527f735f0a6646f3b7"),
+					resource.TestCheckResourceAttrPair(resourceName, "team_id", teamResourceName, "id"),
+					resource.TestCheckResourceAttrPair(resourceName, "user_id", userResourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "role_ids.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "role_ids.0", "629a2f542e0a6e82f408f281"),
-					resource.TestCheckResourceAttr(resourceName, "role_ids.1", "629a2f542e0a6e82f408f282"),
+					resource.TestCheckResourceAttrPair(resourceName, "role_ids.0", teamResourceName, "default_role_ids.admin"),
+					resource.TestCheckResourceAttrPair(resourceName, "role_ids.1", teamResourceName, "default_role_ids.user"),
 				),
 			},
 			{
-				Config: testAccResourceTeamMemberConfig_observer(),
+				Config: testAccResourceTeamMemberConfig_observer(teamName, user),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttr(resourceName, "team_id", "629a2f542e0a6e82f408f280"),
-					resource.TestCheckResourceAttr(resourceName, "user_id", "5eb26b36ec9f070550204c85"),
+					resource.TestCheckResourceAttrPair(resourceName, "team_id", teamResourceName, "id"),
+					resource.TestCheckResourceAttrPair(resourceName, "user_id", userResourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "role_ids.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "role_ids.0", "629a2f542e0a6e82f408f284"),
+					resource.TestCheckResourceAttrPair(resourceName, "role_ids.0", teamResourceName, "default_role_ids.observer"),
 				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateId:     "629a2f542e0a6e82f408f280:diane@squadcast.com",
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					teamID, err := tf.StateAttr(s, "squadcast_team", "id")
+					if err != nil {
+						return "", err
+					}
+
+					return teamID + ":" + user.Email, nil
+				},
 			},
 		},
 	})
@@ -69,22 +84,49 @@ func testAccCheckTeamMemberDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccResourceTeamMemberConfig() string {
+func testAccResourceTeamMemberConfig(teamName string, user testdata.User) string {
 	return fmt.Sprintf(`
-resource "squadcast_team_member" "test" {
-	team_id = "629a2f542e0a6e82f408f280"
-	user_id = "5f8891527f735f0a6646f3b7"
-	role_ids = ["629a2f542e0a6e82f408f281", "629a2f542e0a6e82f408f282"]
-}
-	`)
+resource "squadcast_team" "test" {
+	name = "%s"
 }
 
-func testAccResourceTeamMemberConfig_observer() string {
-	return fmt.Sprintf(`
-resource "squadcast_team_member" "test" {
-	team_id = "629a2f542e0a6e82f408f280"
-	user_id = "5eb26b36ec9f070550204c85"
-	role_ids = ["629a2f542e0a6e82f408f284"]
+resource "squadcast_user" "test" {
+	first_name = "%s"
+	last_name = "%s"
+	email = "%s"
+	role = "user"
 }
-	`)
+
+resource "squadcast_team_member" "test" {
+	team_id = squadcast_team.test.id
+	user_id = squadcast_user.test.id
+	role_ids = [
+		squadcast_team.test.default_role_ids.admin,
+		squadcast_team.test.default_role_ids.user
+	]
+}
+	`, teamName, user.FirstName, user.LastName, user.Email)
+}
+
+func testAccResourceTeamMemberConfig_observer(teamName string, user testdata.User) string {
+	return fmt.Sprintf(`
+	resource "squadcast_team" "test" {
+		name = "%s"
+	}
+
+	resource "squadcast_user" "test" {
+		first_name = "%s"
+		last_name = "%s"
+		email = "%s"
+		role = "user"
+	}
+
+	resource "squadcast_team_member" "test" {
+		team_id = squadcast_team.test.id
+		user_id = squadcast_user.test.id
+		role_ids = [
+			squadcast_team.test.default_role_ids.observer,
+		]
+	}
+	`, teamName, user.FirstName, user.LastName, user.Email)
 }

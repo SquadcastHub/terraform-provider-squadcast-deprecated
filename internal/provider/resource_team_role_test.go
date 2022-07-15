@@ -9,11 +9,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/squadcast/terraform-provider-squadcast/internal/api"
+	"github.com/squadcast/terraform-provider-squadcast/internal/tf"
 )
 
 func TestAccResourceTeamRole(t *testing.T) {
-	teamRoleName := acctest.RandomWithPrefix("team_role")
+	teamRoleName := acctest.RandomWithPrefix("test-teamrole")
+	teamName := acctest.RandomWithPrefix("test-team")
 
+	teamResourceName := "squadcast_team.test"
 	resourceName := "squadcast_team_role.test"
 	resource.UnitTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -21,10 +24,10 @@ func TestAccResourceTeamRole(t *testing.T) {
 		CheckDestroy:      testAccCheckTeamRoleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceTeamRoleConfig(teamRoleName),
+				Config: testAccResourceTeamRoleConfig(teamName, teamRoleName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttr(resourceName, "team_id", "629a2f542e0a6e82f408f280"),
+					resource.TestCheckResourceAttrPair(resourceName, "team_id", teamResourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "name", teamRoleName),
 					resource.TestCheckResourceAttr(resourceName, "default", "false"),
 					resource.TestCheckResourceAttr(resourceName, "abilities.#", "1"),
@@ -32,10 +35,10 @@ func TestAccResourceTeamRole(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccResourceTeamRoleConfig_update(teamRoleName),
+				Config: testAccResourceTeamRoleConfig_update(teamName, teamRoleName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttr(resourceName, "team_id", "629a2f542e0a6e82f408f280"),
+					resource.TestCheckResourceAttrPair(resourceName, "team_id", teamResourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "name", teamRoleName),
 					resource.TestCheckResourceAttr(resourceName, "default", "false"),
 					resource.TestCheckResourceAttr(resourceName, "abilities.#", "2"),
@@ -44,10 +47,10 @@ func TestAccResourceTeamRole(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccResourceTeamRoleConfig_noAbilities(teamRoleName),
+				Config: testAccResourceTeamRoleConfig_noAbilities(teamName, teamRoleName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttr(resourceName, "team_id", "629a2f542e0a6e82f408f280"),
+					resource.TestCheckResourceAttrPair(resourceName, "team_id", teamResourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "name", teamRoleName),
 					resource.TestCheckResourceAttr(resourceName, "default", "false"),
 					resource.TestCheckResourceAttr(resourceName, "abilities.#", "0"),
@@ -57,7 +60,14 @@ func TestAccResourceTeamRole(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateId:     "629a2f542e0a6e82f408f280:" + teamRoleName,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					teamID, err := tf.StateAttr(s, "squadcast_team", "id")
+					if err != nil {
+						return "", err
+					}
+
+					return teamID + ":" + teamRoleName, nil
+				},
 			},
 		},
 	})
@@ -84,32 +94,44 @@ func testAccCheckTeamRoleDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccResourceTeamRoleConfig(teamRoleName string) string {
+func testAccResourceTeamRoleConfig(teamName, teamRoleName string) string {
 	return fmt.Sprintf(`
+resource "squadcast_team" "test" {
+	name = "%s"
+}
+
 resource "squadcast_team_role" "test" {
 	name = "%s"
-	team_id = "629a2f542e0a6e82f408f280"
+	team_id = squadcast_team.test.id
 	abilities = ["read-escalation-policies"]
 }
-	`, teamRoleName)
+	`, teamName, teamRoleName)
 }
 
-func testAccResourceTeamRoleConfig_update(teamRoleName string) string {
+func testAccResourceTeamRoleConfig_update(teamName, teamRoleName string) string {
 	return fmt.Sprintf(`
+resource "squadcast_team" "test" {
+	name = "%s"
+}
+
 resource "squadcast_team_role" "test" {
 	name = "%s"
-	team_id = "629a2f542e0a6e82f408f280"
+	team_id = squadcast_team.test.id
 	abilities = ["read-escalation-policies", "update-runbooks"]
 }
-	`, teamRoleName)
+	`, teamName, teamRoleName)
 }
 
-func testAccResourceTeamRoleConfig_noAbilities(teamRoleName string) string {
+func testAccResourceTeamRoleConfig_noAbilities(teamName, teamRoleName string) string {
 	return fmt.Sprintf(`
+resource "squadcast_team" "test" {
+	name = "%s"
+}
+
 resource "squadcast_team_role" "test" {
 	name = "%s"
-	team_id = "629a2f542e0a6e82f408f280"
+	team_id = squadcast_team.test.id
 	abilities = []
 }
-	`, teamRoleName)
+	`, teamName, teamRoleName)
 }
