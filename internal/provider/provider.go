@@ -30,13 +30,14 @@ func New(version string) func() *schema.Provider {
 	return func() *schema.Provider {
 		p := &schema.Provider{
 			DataSourcesMap: map[string]*schema.Resource{
-				"squadcast_escalation_policy": dataSourceEscalationPolicy(),
-				"squadcast_runbook":           dataSourceRunbook(),
-				"squadcast_schedule":          dataSourceSchedule(),
-				"squadcast_service":           dataSourceService(),
 				"squadcast_squad":             dataSourceSquad(),
-				"squadcast_team":              dataSourceTeam(),
-				"squadcast_user":              dataSourceUser(),
+				"squadcast_service":           dataSourceService(),
+				"squadcast_escalation_policy": dataSourceEscalationPolicy(),
+				// "squadcast_teams": dataSourceTeams(),
+				"squadcast_team":     dataSourceTeam(),
+				"squadcast_user":     dataSourceUser(),
+				"squadcast_schedule": dataSourceSchedule(),
+				"squadcast_runbook":  dataSourceRunbook(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
 				"squadcast_deduplication_rules": resourceDeduplicationRules(),
@@ -53,17 +54,19 @@ func New(version string) func() *schema.Provider {
 				"squadcast_team_role":           resourceTeamRole(),
 				"squadcast_team":                resourceTeam(),
 				"squadcast_user":                resourceUser(),
+				"squadcast_slo":                 resourceSlo(),
 			},
 			Schema: map[string]*schema.Schema{
 				"region": {
-					Description:  "region",
+					Description: "The region you are currently hosted on." +
+						"Supported values are \"us\" and \"eu\"",
 					Type:         schema.TypeString,
 					Optional:     true,
 					DefaultFunc:  schema.EnvDefaultFunc("SQUADCAST_REGION", "us"),
 					ValidateFunc: validation.StringInSlice([]string{"us", "eu", "internal", "staging", "dev"}, false),
 				},
 				"refresh_token": {
-					Description: "refresh token",
+					Description: "The refresh token, This can be created from user profile",
 					Type:        schema.TypeString,
 					Sensitive:   true,
 					Required:    true,

@@ -7,12 +7,15 @@ import (
 )
 
 func SetState(d *schema.ResourceData, m map[string]any) error {
-	id, ok := m["id"].(string)
-	if !ok {
-		return fmt.Errorf("invalid id")
+	idStr, ok := m["id"].(string)
+	if ok {
+		d.SetId(idStr)
 	}
-
-	d.SetId(id)
+	// For PG serial ids
+	idUint, ok := m["id"].(uint)
+	if ok {
+		d.SetId(fmt.Sprint(idUint))
+	}
 
 	for k, v := range m {
 		if k == "id" {
