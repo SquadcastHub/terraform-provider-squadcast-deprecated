@@ -122,18 +122,20 @@ func (r *Data) Encode() (map[string]interface{}, error) {
 
 func (client *Client) CreateSlo(ctx context.Context, orgID, ownerID string, req *Slo) (*Slo, error) {
 	url := fmt.Sprintf("%s/slo?owner_type=team&owner_id=%s", client.BaseURLV3, ownerID)
-	data, er := Request[Slo, Data](http.MethodPost, url, client, ctx, req)
-	return data.Slo, er
+	data, err := Request[Slo, Data](http.MethodPost, url, client, ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return data.Slo, err
 }
 
 func (client *Client) GetSlo(ctx context.Context, orgID, ownerID, sloID string) (*Slo, error) {
 	url := fmt.Sprintf("%s/slo/%s?owner_type=team&owner_id=%s", client.BaseURLV3, sloID, ownerID)
-	data, er := Request[any, Data](http.MethodGet, url, client, ctx, nil)
-	if data != nil {
-		return data.Slo, er
-	} else {
+	data, err := Request[any, Data](http.MethodGet, url, client, ctx, nil)
+	if err != nil {
 		return nil, errors.New("Slo not found")
 	}
+	return data.Slo, nil
 }
 
 func (client *Client) UpdateSlo(ctx context.Context, orgID, ownerID, sloID string, req *Slo) (*Slo, error) {
