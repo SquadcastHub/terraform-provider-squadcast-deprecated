@@ -13,7 +13,7 @@ import (
 
 func resourceService() *schema.Resource {
 	return &schema.Resource{
-		Description: "Service resource.",
+		Description: "[Squadcast Services](https://support.squadcast.com/docs/adding-a-service-1) are the core components of your infrastructure/application for which alerts are generated. Services in Squadcast represent specific systems, applications, components, products, or teams for which an incident is created. To check out some of the best practices on creating Services in Squadcast, refer to the guide [here](https://www.squadcast.com/blog/how-to-configure-services-in-squadcast-best-practices-to-reduce-mttr).",
 
 		CreateContext: resourceServiceCreate,
 		ReadContext:   resourceServiceRead,
@@ -30,13 +30,13 @@ func resourceService() *schema.Resource {
 				Computed:    true,
 			},
 			"name": {
-				Description:  "Service name.",
+				Description:  "Name of the Service.",
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1000),
 			},
 			"description": {
-				Description:  "Service description.",
+				Description:  "Detailed description about this service.",
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1000),
@@ -60,7 +60,7 @@ func resourceService() *schema.Resource {
 				Required:    true,
 			},
 			"api_key": {
-				Description: "Email prefix.",
+				Description: "Unique API key of this service.",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
@@ -79,7 +79,7 @@ func resourceService() *schema.Resource {
 				},
 			},
 			"alert_source_endpoints": {
-				Description: "alert sources.",
+				Description: "Alert source endpoints.",
 				Type:        schema.TypeMap,
 				Computed:    true,
 				Elem: &schema.Schema{

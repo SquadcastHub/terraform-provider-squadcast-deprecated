@@ -14,7 +14,7 @@ const deduplicationRulesID = "deduplication_rules"
 
 func resourceDeduplicationRules() *schema.Resource {
 	return &schema.Resource{
-		Description: "DeduplicationRules resource.",
+		Description: "[Deduplication rules](https://support.squadcast.com/docs/de-duplication-rules) can help you reduce alert noise by organising and grouping alerts. This also provides easy access to similar alerts when needed. When these rules evaluate to true for an incoming incident, alerts will get deduplicated.",
 
 		CreateContext: resourceDeduplicationRulesCreate,
 		ReadContext:   resourceDeduplicationRulesRead,
@@ -65,7 +65,7 @@ func resourceDeduplicationRules() *schema.Resource {
 							Optional:    true,
 						},
 						"dependency_deduplication": {
-							Description: "something dependency.",
+							Description: "Denotes if dependent services should also be deduplicated",
 							Type:        schema.TypeBool,
 							Optional:    true,
 							Default:     false,

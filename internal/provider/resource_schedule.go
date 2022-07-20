@@ -13,7 +13,7 @@ import (
 
 func resourceSchedule() *schema.Resource {
 	return &schema.Resource{
-		Description: "Schedule resource.",
+		Description: "[Squadcast schedules](https://support.squadcast.com/docs/schedules) are used to manage on-call scheduling & determine who will be notified when an incident is triggered.",
 
 		CreateContext: resourceScheduleCreate,
 		ReadContext:   resourceScheduleRead,
@@ -30,13 +30,13 @@ func resourceSchedule() *schema.Resource {
 				Computed:    true,
 			},
 			"name": {
-				Description:  "Schedule name.",
+				Description:  "Name of the Schedule.",
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1000),
 			},
 			"description": {
-				Description:  "Schedule description.",
+				Description:  "Detailed description about the Schedule.",
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1000),
@@ -49,7 +49,7 @@ func resourceSchedule() *schema.Resource {
 				ForceNew:     true,
 			},
 			"color": {
-				Description: "color.",
+				Description: "Calendar color scheme for this schedule, hex values.",
 				Type:        schema.TypeString,
 				Required:    true,
 			},

@@ -15,7 +15,7 @@ import (
 
 func resourceSquad() *schema.Resource {
 	return &schema.Resource{
-		Description: "Squad resource.",
+		Description: "[Squads](https://support.squadcast.com/docs/squads) are smaller groups of members within Teams. Squads could correspond to groups of people that are responsible for specific projects within a Team.",
 
 		CreateContext: resourceSquadCreate,
 		ReadContext:   resourceSquadRead,
@@ -32,7 +32,7 @@ func resourceSquad() *schema.Resource {
 				Computed:    true,
 			},
 			"name": {
-				Description:  "Squad name.",
+				Description:  "Name of the Squad.",
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1000),

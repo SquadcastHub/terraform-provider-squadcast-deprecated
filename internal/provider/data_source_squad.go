@@ -13,7 +13,8 @@ import (
 
 func dataSourceSquad() *schema.Resource {
 	return &schema.Resource{
-		Description: "What is a squadcast squad?",
+		Description: "[Squads](https://support.squadcast.com/docs/squads) are smaller groups of members within Teams. Squads could correspond to groups of people that are responsible for specific projects within a Team.
+		Use this data source to get information about a specific Squad.",
 		ReadContext: dataSourceSquadRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
@@ -22,7 +23,7 @@ func dataSourceSquad() *schema.Resource {
 				Computed:    true,
 			},
 			"name": {
-				Description:  "Squad name.",
+				Description:  "Name of the Squad.",
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1000),

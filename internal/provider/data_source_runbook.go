@@ -13,7 +13,9 @@ import (
 
 func dataSourceRunbook() *schema.Resource {
 	return &schema.Resource{
-		Description: "What is a squadcast runbook?",
+		Description: "A Runbook is a compilation of routine procedures and operations that are documented for reference while working on a critical incident. Sometimes, it can also be referred to as a Playbook.
+		
+		Use this data source to get information about a specific Runbook that you can use for other Squadcast resources.",
 		ReadContext: dataSourceRunbookRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
@@ -22,7 +24,7 @@ func dataSourceRunbook() *schema.Resource {
 				Computed:    true,
 			},
 			"name": {
-				Description:  "Runbook name.",
+				Description:  "Name of the Runbook",
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1000),
@@ -34,7 +36,7 @@ func dataSourceRunbook() *schema.Resource {
 				ValidateFunc: tf.ValidateObjectID,
 			},
 			"steps": {
-				Description: "steps.",
+				Description: "Step by Step instructions, you can add as many steps as you want, supports markdown formatting.",
 				Type:        schema.TypeList,
 				Computed:    true,
 				Elem: &schema.Resource{

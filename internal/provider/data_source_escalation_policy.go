@@ -13,7 +13,9 @@ import (
 
 func dataSourceEscalationPolicy() *schema.Resource {
 	return &schema.Resource{
-		Description: "EscalationPolicy data source.",
+		Description: "[Escalation Policies](https://support.squadcast.com/docs/escalation-policies) defines rules indicating when and how alerts will escalate to various Users, Squads and (or) Schedules within your Organization.
+		
+		Use this data source to get information about a specific escalation policy that you can use for other Squadcast resources.",
 
 		ReadContext: dataSourceEscalationPolicyRead,
 
@@ -24,13 +26,13 @@ func dataSourceEscalationPolicy() *schema.Resource {
 				Computed:    true,
 			},
 			"name": {
-				Description:  "EscalationPolicy name.",
+				Description:  "Name of the Escalation Policy",
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1000),
 			},
 			"description": {
-				Description: "EscalationPolicy description.",
+				Description: "Detailed description about the nature & purpose Escalation policy",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
@@ -41,18 +43,18 @@ func dataSourceEscalationPolicy() *schema.Resource {
 				ValidateFunc: tf.ValidateObjectID,
 			},
 			"repeat": {
-				Description: "repeat this policy",
+				Description: "You can choose to repeate the entire policy, if no one acknowledges the incident even after the Escalation Policy has been executed fully once",
 				Type:        schema.TypeList,
 				Computed:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"times": {
-							Description: "repeat times",
+							Description: "The number of times you want this escalation policy to be repeated, maximum allowed to repeat 3 times",
 							Type:        schema.TypeInt,
 							Computed:    true,
 						},
 						"delay_minutes": {
-							Description: "repeat after minutes",
+							Description: "The number of minutes to wait before repeating the escalation policy",
 							Type:        schema.TypeInt,
 							Computed:    true,
 						},
@@ -60,7 +62,7 @@ func dataSourceEscalationPolicy() *schema.Resource {
 				},
 			},
 			"rules": {
-				Description: "rules.",
+				Description: "Rules will have the details of who to notify and when to notify and how to notify them.",
 				Type:        schema.TypeList,
 				Computed:    true,
 				Elem: &schema.Resource{
@@ -98,7 +100,7 @@ func dataSourceEscalationPolicy() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
-										Description: "enable rotation within",
+										Description: "Enables Round Robin escalation within this layer.",
 										Type:        schema.TypeBool,
 										Computed:    true,
 									},

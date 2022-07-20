@@ -13,7 +13,8 @@ import (
 
 func dataSourceSchedule() *schema.Resource {
 	return &schema.Resource{
-		Description: "What is a squadcast schedule?",
+		Description: "[Squadcast schedules](https://support.squadcast.com/docs/schedules) are used to manage on-call scheduling & determine who will be notified when an incident is triggered. 
+		Use this data source to get information about a specific schedule that you can use for other Squadcast resources.",
 		ReadContext: dataSourceScheduleRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
@@ -22,13 +23,13 @@ func dataSourceSchedule() *schema.Resource {
 				Computed:    true,
 			},
 			"name": {
-				Description:  "Schedule name.",
+				Description:  "Name of the Schedule.",
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 1000),
 			},
 			"description": {
-				Description: "Schedule description.",
+				Description: "Detailed description about the schedule.",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
@@ -39,7 +40,7 @@ func dataSourceSchedule() *schema.Resource {
 				ValidateFunc: tf.ValidateObjectID,
 			},
 			"color": {
-				Description: "color.",
+				Description: "Calendar color scheme for this schedule, hex values.",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},

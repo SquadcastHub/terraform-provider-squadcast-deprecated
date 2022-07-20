@@ -11,7 +11,7 @@ import (
 
 func resourceTeamMember() *schema.Resource {
 	return &schema.Resource{
-		Description: "TeamMember resource.",
+		Description: "You can manage the members of a Team here.",
 
 		CreateContext: resourceTeamMemberCreate,
 		ReadContext:   resourceTeamMemberRead,

@@ -15,7 +15,7 @@ const serviceMaintenanceID = "service_maintenance"
 
 func resourceServiceMaintenance() *schema.Resource {
 	return &schema.Resource{
-		Description: "ServiceMaintenance resource.",
+		Description: "[Maintenance Mode](https://support.squadcast.com/docs/maintenance-mode) enables you to reduce alert noise during the scheduled maintenance window. Alerts generated during active maintenance windows would be automatically suppressed and hence, no notifications are generated for those suppressed alerts.",
 
 		CreateContext: resourceServiceMaintenanceCreate,
 		ReadContext:   resourceServiceMaintenanceRead,
@@ -45,19 +45,19 @@ func resourceServiceMaintenance() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"from": {
-							Description:  "from",
+							Description:  "Starting Time",
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.IsRFC3339Time,
 						},
 						"till": {
-							Description:  "till.",
+							Description:  "End Time.",
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.IsRFC3339Time,
 						},
 						"repeat_till": {
-							Description:  "repeat till.",
+							Description:  "Till when you want to repeat this Maintenance mode",
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.IsRFC3339Time,
