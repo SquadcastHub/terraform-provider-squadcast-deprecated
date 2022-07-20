@@ -15,9 +15,9 @@ const suppressionRulesID = "suppression_rules"
 
 func resourceSuppressionRules() *schema.Resource {
 	return &schema.Resource{
-		Description: "[Suppression rules](https://support.squadcast.com/docs/alert-suppression) can help you avoid alert fatigue by suppressing notifications for non-actionable alerts.
+		Description: "[Suppression rules](https://support.squadcast.com/docs/alert-suppression) can help you avoid alert fatigue by suppressing notifications for non-actionable alerts." +
 
-		Squadcast will suppress the incidents that match any of the Suppression Rules you create for your Services. These incidents will go into the Suppressed state and you will not get any notifications for them",
+			"Squadcast will suppress the incidents that match any of the Suppression Rules you create for your Services. These incidents will go into the Suppressed state and you will not get any notifications for them",
 
 		CreateContext: resourceSuppressionRulesCreate,
 		ReadContext:   resourceSuppressionRulesRead,

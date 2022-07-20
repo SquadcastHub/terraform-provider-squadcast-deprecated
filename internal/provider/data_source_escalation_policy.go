@@ -13,9 +13,8 @@ import (
 
 func dataSourceEscalationPolicy() *schema.Resource {
 	return &schema.Resource{
-		Description: "[Escalation Policies](https://support.squadcast.com/docs/escalation-policies) defines rules indicating when and how alerts will escalate to various Users, Squads and (or) Schedules within your Organization.
-		
-		Use this data source to get information about a specific escalation policy that you can use for other Squadcast resources.",
+		Description: "[Escalation Policies](https://support.squadcast.com/docs/escalation-policies) defines rules indicating when and how alerts will escalate to various Users, Squads and (or) Schedules within your Organization." +
+			"Use this data source to get information about a specific escalation policy that you can use for other Squadcast resources.",
 
 		ReadContext: dataSourceEscalationPolicyRead,
 

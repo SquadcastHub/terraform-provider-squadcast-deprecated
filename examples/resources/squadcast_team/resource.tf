@@ -1,3 +1,3 @@
 data "squadcast_team" "test" {
-	name = "Default Team"
+  name = "Default Team"
 }
